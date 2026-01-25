@@ -18,6 +18,9 @@ public class LoginPanel extends JPanel {
     private JPasswordField passwortField;
     private JButton loginButton;
     private JButton registerButton;
+    private JButton switchModeButton;
+    private JLabel subtitleLabel;
+    private boolean employeeMode = false;
 
     /**
      * Konstruktor für das Login-Panel.
@@ -50,7 +53,7 @@ public class LoginPanel extends JPanel {
         add(titleLabel, gbc);
         
         // Untertitel
-        JLabel subtitleLabel = new JLabel("Bitte melden Sie sich an");
+        subtitleLabel = new JLabel("Bitte melden Sie sich an");
         subtitleLabel.setFont(new Font("Arial", Font.PLAIN, 16));
         subtitleLabel.setHorizontalAlignment(SwingConstants.CENTER);
         gbc.gridy = 1;
@@ -93,13 +96,13 @@ public class LoginPanel extends JPanel {
         gbc.gridwidth = 2;
         loginButton = new JButton("Anmelden");
         loginButton.setFont(new Font("Arial", Font.BOLD, 14));
-        loginButton.setBackground(new Color(70, 130, 180)); // Steel Blue
-        loginButton.setForeground(Color.WHITE);
+        loginButton.setBackground(new Color(255, 193, 7)); // Warm Gelb für stärkeren Fokus
+        loginButton.setForeground(Color.BLACK);
         loginButton.setFocusPainted(false);
         loginButton.addActionListener(e -> performLogin());
         add(loginButton, gbc);
         
-        // Register Button
+        // Register Button (nur für Kundenmodus sichtbar)
         gbc.gridy = 6;
         registerButton = new JButton("Neues Konto erstellen");
         registerButton.setFont(new Font("Arial", Font.PLAIN, 12));
@@ -107,9 +110,20 @@ public class LoginPanel extends JPanel {
         registerButton.setFocusPainted(false);
         registerButton.addActionListener(e -> mainFrame.showRegisterPanel());
         add(registerButton, gbc);
+
+        // Switch Mode Button
+        gbc.gridy = 7;
+        switchModeButton = new JButton("Zum Mitarbeiter-Login wechseln");
+        switchModeButton.setFont(new Font("Arial", Font.PLAIN, 12));
+        switchModeButton.setFocusPainted(false);
+        switchModeButton.addActionListener(e -> toggleMode());
+        add(switchModeButton, gbc);
         
         // Enter-Taste für Login
         passwortField.addActionListener(e -> performLogin());
+
+        // Start im Kundenmodus
+        applyModeState();
     }
 
     /**
@@ -128,7 +142,7 @@ public class LoginPanel extends JPanel {
         }
         
         // Login durchführen
-        boolean success = authController.login(accountName, passwort);
+        boolean success = authController.login(accountName, passwort, employeeMode);
         
         if (success) {
             // Felder leeren
@@ -147,6 +161,23 @@ public class LoginPanel extends JPanel {
                 "Login fehlgeschlagen",
                 JOptionPane.ERROR_MESSAGE);
             passwortField.setText("");
+        }
+    }
+
+    private void toggleMode() {
+        employeeMode = !employeeMode;
+        applyModeState();
+    }
+
+    private void applyModeState() {
+        if (employeeMode) {
+            subtitleLabel.setText("Mitarbeiter-Login");
+            switchModeButton.setText("Zum Kunden-Login wechseln");
+            registerButton.setVisible(false);
+        } else {
+            subtitleLabel.setText("Kunden-Login");
+            switchModeButton.setText("Zum Mitarbeiter-Login wechseln");
+            registerButton.setVisible(true);
         }
     }
 }

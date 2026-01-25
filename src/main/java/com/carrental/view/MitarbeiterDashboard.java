@@ -243,7 +243,9 @@ public class MitarbeiterDashboard extends JPanel {
      * Lädt alle Daten.
      */
     private void loadData() {
-        loadFahrzeuge();
+        if (fahrzeugPanel != null) {
+            fahrzeugPanel.refreshData();
+        }
         loadVertraege();
         loadStatistiken();
     }
@@ -252,6 +254,9 @@ public class MitarbeiterDashboard extends JPanel {
      * Lädt die Fahrzeugliste.
      */
     private void loadFahrzeuge() {
+        if (fahrzeugTableModel == null) {
+            return; // FahrzeugPanel handles its own tables; safeguard legacy call path
+        }
         fahrzeugTableModel.setRowCount(0);
         
         try {

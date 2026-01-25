@@ -8,13 +8,18 @@ import com.carrental.model.Mietvertrag;
 import com.carrental.model.Zusatzoption;
 
 import javax.swing.*;
+import javax.swing.SpinnerDateModel;
 import java.awt.*;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+
+import javax.swing.event.ChangeListener;
 
 /**
  * Dialog für die Erstellung einer neuen Buchung.
@@ -27,12 +32,11 @@ public class BookingDialog extends JDialog {
     private final BookingController bookingController;
     private final Fahrzeug fahrzeug;
     
-    private JTextField startDatumField;
-    private JTextField endDatumField;
+    private JSpinner startDatumSpinner;
+    private JSpinner endDatumSpinner;
     private JList<String> zusatzoptionList;
     private DefaultListModel<String> zusatzoptionListModel;
     private JLabel preisLabel;
-    private JButton berechnenButton;
     private JButton buchenButton;
     private JButton abbrechenButton;
     
@@ -53,6 +57,8 @@ public class BookingDialog extends JDialog {
         
         initializeUI();
         loadZusatzoptionen();
+        installAutoRecalcListeners();
+        updatePreisUndVerfuegbarkeit();
         
         setSize(500, 600);
         setLocationRelativeTo(parent);
@@ -109,14 +115,14 @@ public class BookingDialog extends JDialog {
         // Zeitraum
         JPanel zeitraumPanel = new JPanel(new GridLayout(2, 2, 10, 10));
         zeitraumPanel.setBorder(BorderFactory.createTitledBorder("Mietzeitraum"));
-        
-        zeitraumPanel.add(new JLabel("Startdatum (YYYY-MM-DD):"));
-        startDatumField = new JTextField(LocalDate.now().plusDays(1).toString());
-        zeitraumPanel.add(startDatumField);
-        
-        zeitraumPanel.add(new JLabel("Enddatum (YYYY-MM-DD):"));
-        endDatumField = new JTextField(LocalDate.now().plusDays(8).toString());
-        zeitraumPanel.add(endDatumField);
+
+        zeitraumPanel.add(new JLabel("Startdatum:"));
+        startDatumSpinner = createDateSpinner(LocalDate.now().plusDays(1));
+        zeitraumPanel.add(startDatumSpinner);
+
+        zeitraumPanel.add(new JLabel("Enddatum:"));
+        endDatumSpinner = createDateSpinner(LocalDate.now().plusDays(8));
+        zeitraumPanel.add(endDatumSpinner);
         
         formPanel.add(zeitraumPanel);
         formPanel.add(Box.createVerticalStrut(20));
@@ -150,12 +156,7 @@ public class BookingDialog extends JDialog {
         
         // Buttons
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-        
-        berechnenButton = new JButton("Preis berechnen");
-        berechnenButton.setFont(new Font("Arial", Font.PLAIN, 13));
-        berechnenButton.addActionListener(e -> berechnePreis());
-        buttonPanel.add(berechnenButton);
-        
+
         buchenButton = new JButton("Jetzt buchen");
         buchenButton.setFont(new Font("Arial", Font.BOLD, 13));
         buchenButton.setBackground(new Color(70, 130, 180));
@@ -176,9 +177,9 @@ public class BookingDialog extends JDialog {
     private void loadZusatzoptionen() {
         try {
             verfuegbareOptionen = system.getZusatzoptionDao().findAll();
-            
+
             for (Zusatzoption option : verfuegbareOptionen) {
-                String display = String.format("%s (%.2f € / Tag)", 
+                String display = String.format("%s (%.2f € / Tag)",
                     option.getBezeichnung(), option.getAufpreis());
                 zusatzoptionListModel.addElement(display);
             }
@@ -191,114 +192,131 @@ public class BookingDialog extends JDialog {
     }
 
     /**
-     * Berechnet den Gesamtpreis.
+     * Aktualisiert Preis und Verfügbarkeit automatisch, sobald sich Zeitraum oder Optionen ändern.
      */
-    private void berechnePreis() {
-        try {
-            LocalDate start = LocalDate.parse(startDatumField.getText().trim());
-            LocalDate end = LocalDate.parse(endDatumField.getText().trim());
-            
-            // Validierung
-            if (end.isBefore(start) || end.isEqual(start)) {
-                JOptionPane.showMessageDialog(this,
-                    "Enddatum muss nach dem Startdatum liegen.",
-                    "Ungültiger Zeitraum",
-                    JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            
-            if (start.isBefore(LocalDate.now())) {
-                JOptionPane.showMessageDialog(this,
-                    "Startdatum darf nicht in der Vergangenheit liegen.",
-                    "Ungültiger Zeitraum",
-                    JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            
-            // Verfügbarkeit prüfen
-            if (!bookingController.isFahrzeugVerfuegbar(fahrzeug, start, end)) {
-                JOptionPane.showMessageDialog(this,
-                    "Fahrzeug ist im gewählten Zeitraum nicht verfügbar.",
-                    "Nicht verfügbar",
-                    JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            
-            // Temporären Vertrag erstellen für Preisberechnung
-            Mietvertrag tempVertrag = new Mietvertrag(authController.getCurrentKunde(), 
-                                                       fahrzeug, start, end);
-            
-            // Ausgewählte Zusatzoptionen hinzufügen
-            int[] selectedIndices = zusatzoptionList.getSelectedIndices();
-            for (int index : selectedIndices) {
-                tempVertrag.addZusatzoption(verfuegbareOptionen.get(index));
-            }
-            
-            // Preis berechnen
-            berechneterPreis = bookingController.calculateGesamtpreis(tempVertrag);
-            
-            long tage = ChronoUnit.DAYS.between(start, end) + 1;
-            preisLabel.setText(String.format("%.2f € (%d Tage)", berechneterPreis, tage));
-            
-        } catch (DateTimeParseException e) {
-            JOptionPane.showMessageDialog(this,
-                "Ungültiges Datumsformat. Verwenden Sie YYYY-MM-DD.",
-                "Eingabefehler",
-                JOptionPane.ERROR_MESSAGE);
+    private void updatePreisUndVerfuegbarkeit() {
+        LocalDate start = getDate(startDatumSpinner);
+        LocalDate end = getDate(endDatumSpinner);
+
+        if (start == null || end == null) {
+            preisLabel.setText("Bitte Zeitraum wählen");
+            buchenButton.setEnabled(false);
+            return;
         }
+
+        if (!end.isAfter(start)) {
+            preisLabel.setText("Enddatum nach Startdatum wählen");
+            buchenButton.setEnabled(false);
+            return;
+        }
+
+        if (start.isBefore(LocalDate.now())) {
+            preisLabel.setText("Startdatum darf nicht in der Vergangenheit liegen");
+            buchenButton.setEnabled(false);
+            return;
+        }
+
+        if (!bookingController.isFahrzeugVerfuegbar(fahrzeug, start, end)) {
+            preisLabel.setText("Im Zeitraum nicht verfügbar");
+            buchenButton.setEnabled(false);
+            return;
+        }
+
+        Mietvertrag tempVertrag = new Mietvertrag(authController.getCurrentKunde(),
+            fahrzeug, start, end);
+
+        int[] selectedIndices = zusatzoptionList.getSelectedIndices();
+        for (int index : selectedIndices) {
+            tempVertrag.addZusatzoption(verfuegbareOptionen.get(index));
+        }
+
+        berechneterPreis = bookingController.calculateGesamtpreis(tempVertrag);
+
+        long tage = ChronoUnit.DAYS.between(start, end) + 1;
+        preisLabel.setText(String.format("%.2f € (%d Tage)", berechneterPreis, tage));
+        buchenButton.setEnabled(true);
     }
 
     /**
      * Führt die Buchung durch.
      */
     private void buchungDurchfuehren() {
-        if (berechneterPreis == 0.0) {
+        updatePreisUndVerfuegbarkeit();
+        if (!buchenButton.isEnabled()) {
             JOptionPane.showMessageDialog(this,
-                "Bitte berechnen Sie zuerst den Preis.",
-                "Preis nicht berechnet",
+                "Bitte gültigen Zeitraum wählen (verfügbar) bevor Sie buchen.",
+                "Zeitraum prüfen",
                 JOptionPane.WARNING_MESSAGE);
             return;
         }
-        
-        try {
-            LocalDate start = LocalDate.parse(startDatumField.getText().trim());
-            LocalDate end = LocalDate.parse(endDatumField.getText().trim());
-            
-            // Ausgewählte Zusatzoptionen sammeln
-            List<Zusatzoption> optionen = new ArrayList<>();
-            int[] selectedIndices = zusatzoptionList.getSelectedIndices();
-            for (int index : selectedIndices) {
-                optionen.add(verfuegbareOptionen.get(index));
-            }
-            
-            // Buchung erstellen
-            Mietvertrag vertrag = bookingController.buchungErstellen(
-                authController.getCurrentKunde(), 
-                fahrzeug, 
-                start, 
-                end, 
-                optionen
-            );
-            
-            if (vertrag != null) {
-                JOptionPane.showMessageDialog(this,
-                    String.format("Buchung erfolgreich!\n\nMietnummer: %s\nGesamtpreis: %.2f €",
-                        vertrag.getMietnummer(), vertrag.getGesamtPreis()),
-                    "Buchung erfolgreich",
-                    JOptionPane.INFORMATION_MESSAGE);
-                dispose();
-            } else {
-                JOptionPane.showMessageDialog(this,
-                    "Buchung konnte nicht erstellt werden. Bitte versuchen Sie es erneut.",
-                    "Fehler",
-                    JOptionPane.ERROR_MESSAGE);
-            }
-            
-        } catch (DateTimeParseException e) {
+
+        LocalDate start = getDate(startDatumSpinner);
+        LocalDate end = getDate(endDatumSpinner);
+
+        List<Zusatzoption> optionen = new ArrayList<>();
+        int[] selectedIndices = zusatzoptionList.getSelectedIndices();
+        for (int index : selectedIndices) {
+            optionen.add(verfuegbareOptionen.get(index));
+        }
+
+        Mietvertrag vertrag = bookingController.buchungErstellen(
+            authController.getCurrentKunde(),
+            fahrzeug,
+            start,
+            end,
+            optionen
+        );
+
+        if (vertrag != null) {
             JOptionPane.showMessageDialog(this,
-                "Ungültiges Datumsformat. Verwenden Sie YYYY-MM-DD.",
-                "Eingabefehler",
+                String.format("Buchung erfolgreich!\n\nMietnummer: %s\nGesamtpreis: %.2f €",
+                    vertrag.getMietnummer(), vertrag.getGesamtPreis()),
+                "Buchung erfolgreich",
+                JOptionPane.INFORMATION_MESSAGE);
+            dispose();
+        } else {
+            JOptionPane.showMessageDialog(this,
+                "Buchung konnte nicht erstellt werden. Bitte versuchen Sie es erneut.",
+                "Fehler",
                 JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private JSpinner createDateSpinner(LocalDate initialDate) {
+        Date initial = Date.from(initialDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        SpinnerDateModel model = new SpinnerDateModel(initial, null, null, Calendar.DAY_OF_MONTH);
+        JSpinner spinner = new JSpinner(model);
+        spinner.setEditor(new JSpinner.DateEditor(spinner, "yyyy-MM-dd"));
+        ((JSpinner.DefaultEditor) spinner.getEditor()).getTextField().setColumns(10);
+        return spinner;
+    }
+
+    private LocalDate getDate(JSpinner spinner) {
+        Object value = spinner.getValue();
+        if (value instanceof Date date) {
+            return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        }
+        return null;
+    }
+
+    private void installAutoRecalcListeners() {
+        ChangeListener changeListener = e -> updatePreisUndVerfuegbarkeit();
+        startDatumSpinner.addChangeListener(changeListener);
+        endDatumSpinner.addChangeListener(changeListener);
+        zusatzoptionList.addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                updatePreisUndVerfuegbarkeit();
+            }
+        });
+    }
+
+    public void setZeitraum(LocalDate start, LocalDate end) {
+        if (start != null) {
+            startDatumSpinner.setValue(Date.from(start.atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        }
+        if (end != null) {
+            endDatumSpinner.setValue(Date.from(end.atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        }
+        updatePreisUndVerfuegbarkeit();
     }
 }

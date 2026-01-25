@@ -172,6 +172,27 @@ public class FahrzeugPanel extends JPanel {
     }
 
     /**
+     * Public refresher used by embedding dashboards.
+     */
+    public void refreshData() {
+        loadData();
+    }
+
+    /**
+     * Refreshes only the vehicle list.
+     */
+    public void refreshFahrzeuge() {
+        loadFahrzeuge();
+    }
+
+    /**
+     * Refreshes only the vehicle type list.
+     */
+    public void refreshFahrzeugtypen() {
+        loadFahrzeugtypen();
+    }
+
+    /**
      * Lädt die Fahrzeugliste.
      */
     private void loadFahrzeuge() {

@@ -28,11 +28,11 @@
             </releases>
         </repository>
         
-        <!-- IBM Artifactory (for Db2 Driver) -->
+        <!-- IBM Public Maven Repository (für Db2 JDBC-Treiber) -->
         <repository>
-            <id>ibm-repo</id>
-            <name>IBM Data Server Driver Repository</name>
-            <url>https://public.dhe.ibm.com/ibmdl/export/pub/software/data/db2/drivers/odbc_cli/</url>
+            <id>ibm-db2-public</id>
+            <name>IBM Public Maven Repository</name>
+            <url>https://public.dhe.ibm.com/ibmdl/export/pub/software/websphere/maven/repository/</url>
             <releases>
                 <enabled>true</enabled>
             </releases>
@@ -65,7 +65,7 @@
                 </configuration>
             </plugin>
 
-            <!-- Maven Assembly Plugin - Fat JAR with all Dependencies -->
+            <!-- Assembly: 生成含依赖的可执行 JAR，命名为 car-rental-system-1.0-SNAPSHOT.jar -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
@@ -79,8 +79,9 @@
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
-                    <finalName>car-rental-system</finalName>
-                    <appendAssemblyId>true</appendAssemblyId>
+                    <!-- 覆盖默认文件名，生成无 -jar-with-dependencies 后缀的 Fat JAR -->
+                    <finalName>car-rental-system-1.0-SNAPSHOT</finalName>
+                    <appendAssemblyId>false</appendAssemblyId>
                 </configuration>
                 <executions>
                     <execution>

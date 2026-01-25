@@ -8,9 +8,15 @@ import com.carrental.model.Kunde;
 import com.carrental.model.Mietvertrag;
 
 import javax.swing.*;
+import javax.swing.SpinnerDateModel;
+import javax.swing.event.ChangeListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -31,6 +37,10 @@ public class KundeDashboard extends JPanel {
     private JButton neueBuchungButton;
     private JButton logoutButton;
     private JLabel welcomeLabel;
+    private JSpinner startDateSpinner;
+    private JSpinner endDateSpinner;
+    private JButton verfuegbarkeitButton;
+    private JTabbedPane tabbedPane;
 
     /**
      * Konstruktor für das Kunden-Dashboard.
@@ -71,14 +81,13 @@ public class KundeDashboard extends JPanel {
         add(headerPanel, BorderLayout.NORTH);
         
         // Tab-Panel
-        JTabbedPane tabbedPane = new JTabbedPane();
-        
-        // Tab 1: Verfügbare Fahrzeuge
+        tabbedPane = new JTabbedPane();
+        tabbedPane.setFont(new Font("Arial", Font.BOLD, 14));
+
         tabbedPane.addTab("Verfügbare Fahrzeuge", createFahrzeugPanel());
-        
-        // Tab 2: Meine Buchungen
         tabbedPane.addTab("Meine Buchungen", createBuchungPanel());
-        
+        tabbedPane.addTab("Meine Daten", createProfilPanel());
+
         add(tabbedPane, BorderLayout.CENTER);
     }
 
@@ -87,6 +96,27 @@ public class KundeDashboard extends JPanel {
      */
     private JPanel createFahrzeugPanel() {
         JPanel panel = new JPanel(new BorderLayout());
+
+        JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        filterPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 5, 10));
+
+        filterPanel.add(new JLabel("Start:"));
+        startDateSpinner = createDateSpinner(LocalDate.now().plusDays(1));
+        filterPanel.add(startDateSpinner);
+
+        filterPanel.add(new JLabel("Ende:"));
+        endDateSpinner = createDateSpinner(LocalDate.now().plusDays(8));
+        filterPanel.add(endDateSpinner);
+
+        verfuegbarkeitButton = new JButton("Verfügbarkeit anzeigen");
+        verfuegbarkeitButton.addActionListener(e -> performAvailabilitySearch());
+        filterPanel.add(verfuegbarkeitButton);
+
+        JLabel hintLabel = new JLabel("Bitte zuerst Zeitraum wählen, dann Fahrzeug wählen.");
+        hintLabel.setForeground(Color.DARK_GRAY);
+        filterPanel.add(hintLabel);
+
+        panel.add(filterPanel, BorderLayout.NORTH);
         
         // Tabelle für Fahrzeuge
         String[] columns = {"ID", "Kennzeichen", "Hersteller", "Modell", "Kategorie", 
@@ -101,6 +131,12 @@ public class KundeDashboard extends JPanel {
         fahrzeugTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         fahrzeugTable.setFont(new Font("Arial", Font.PLAIN, 12));
         fahrzeugTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 12));
+        fahrzeugTable.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                boolean selected = fahrzeugTable.getSelectedRow() != -1;
+                setBuchungButtonState(selected);
+            }
+        });
         
         JScrollPane scrollPane = new JScrollPane(fahrzeugTable);
         panel.add(scrollPane, BorderLayout.CENTER);
@@ -110,14 +146,11 @@ public class KundeDashboard extends JPanel {
         
         neueBuchungButton = new JButton("Fahrzeug buchen");
         neueBuchungButton.setFont(new Font("Arial", Font.BOLD, 14));
-        neueBuchungButton.setBackground(new Color(70, 130, 180));
-        neueBuchungButton.setForeground(Color.WHITE);
+        neueBuchungButton.setForeground(Color.BLACK);
+        neueBuchungButton.setToolTipText("Bitte zuerst Zeitraum wählen und Fahrzeug markieren.");
         neueBuchungButton.addActionListener(e -> openBookingDialog());
+        setBuchungButtonState(false);
         buttonPanel.add(neueBuchungButton);
-        
-        JButton refreshButton = new JButton("Aktualisieren");
-        refreshButton.addActionListener(e -> loadFahrzeuge());
-        buttonPanel.add(refreshButton);
         
         panel.add(buttonPanel, BorderLayout.SOUTH);
         
@@ -163,22 +196,163 @@ public class KundeDashboard extends JPanel {
         return panel;
     }
 
+    private JPanel createProfilPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+
+        Kunde kunde = authController.getCurrentKunde();
+        if (kunde == null) {
+            panel.add(new JLabel("Kein Kunde angemeldet."), BorderLayout.CENTER);
+            return panel;
+        }
+
+        JPanel form = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 8, 8, 8);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.WEST;
+
+        Font labelFont = new Font("Arial", Font.BOLD, 24);
+        Font fieldFont = new Font("Arial", Font.PLAIN, 22);
+
+        JTextField vornameField = new JTextField(kunde.getVorname());
+        JTextField nachnameField = new JTextField(kunde.getNachname());
+        JTextField emailField = new JTextField(kunde.getEmail());
+        JTextField strasseField = new JTextField(kunde.getStrasse());
+        JTextField hausnummerField = new JTextField(kunde.getHausnummer());
+        JTextField plzField = new JTextField(kunde.getPlz());
+        JTextField ortField = new JTextField(kunde.getOrt());
+        JTextField fuehrerscheinField = new JTextField(kunde.getFuehrerscheinNummer());
+
+        JTextField[] fields = {vornameField, nachnameField, emailField, strasseField, hausnummerField, plzField, ortField, fuehrerscheinField};
+        for (JTextField tf : fields) {
+            tf.setFont(fieldFont);
+            tf.setColumns(18);
+        }
+
+        LocalDate geburtstag = kunde.getGeburtstag() != null ? kunde.getGeburtstag() : LocalDate.now().minusYears(20);
+        JSpinner geburtstagSpinner = createDateSpinner(geburtstag);
+
+        int row = 0;
+        row = addFormRow(form, gbc, row, "Vorname", vornameField, labelFont);
+        row = addFormRow(form, gbc, row, "Nachname", nachnameField, labelFont);
+        row = addFormRow(form, gbc, row, "E-Mail", emailField, labelFont);
+        row = addFormRow(form, gbc, row, "Straße", strasseField, labelFont);
+        row = addFormRow(form, gbc, row, "Hausnummer", hausnummerField, labelFont);
+        row = addFormRow(form, gbc, row, "PLZ", plzField, labelFont);
+        row = addFormRow(form, gbc, row, "Ort", ortField, labelFont);
+        row = addFormRow(form, gbc, row, "Führerschein", fuehrerscheinField, labelFont);
+
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        JLabel geburtLabel = new JLabel("Geburtstag");
+        geburtLabel.setFont(labelFont);
+        form.add(geburtLabel, gbc);
+        gbc.gridx = 1;
+        JComponent spinnerComp = geburtstagSpinner.getEditor();
+        if (spinnerComp instanceof JSpinner.DefaultEditor editor) {
+            editor.getTextField().setFont(fieldFont);
+        }
+        form.add(geburtstagSpinner, gbc);
+
+        panel.add(form, BorderLayout.CENTER);
+
+        JButton saveButton = new JButton("Speichern");
+        saveButton.addActionListener(e -> {
+            try {
+                kunde.setVorname(vornameField.getText().trim());
+                kunde.setNachname(nachnameField.getText().trim());
+                kunde.setEmail(emailField.getText().trim());
+                kunde.setStrasse(strasseField.getText().trim());
+                kunde.setHausnummer(hausnummerField.getText().trim());
+                kunde.setPlz(plzField.getText().trim());
+                kunde.setOrt(ortField.getText().trim());
+                kunde.setFuehrerscheinNummer(fuehrerscheinField.getText().trim());
+                kunde.setGeburtstag(getDate(geburtstagSpinner));
+
+                system.getKundeDao().update(kunde);
+                updateWelcomeLabel();
+
+                JOptionPane.showMessageDialog(this,
+                    "Daten wurden gespeichert.",
+                    "Erfolg",
+                    JOptionPane.INFORMATION_MESSAGE);
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(this,
+                    "Speichern fehlgeschlagen: " + ex.getMessage(),
+                    "Fehler",
+                    JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        JPanel actionPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        actionPanel.add(saveButton);
+        panel.add(actionPanel, BorderLayout.SOUTH);
+
+        return panel;
+    }
+
     /**
      * Lädt alle Daten.
      */
     private void loadData() {
-        loadFahrzeuge();
         loadBuchungen();
+    }
+
+    private void updateWelcomeLabel() {
+        Kunde kunde = authController.getCurrentKunde();
+        String name = kunde != null ? kunde.getVorname() + " " + kunde.getNachname() : "Kunde";
+        welcomeLabel.setText("Willkommen, " + name);
     }
 
     /**
      * Lädt verfügbare Fahrzeuge in die Tabelle.
      */
-    private void loadFahrzeuge() {
-        fahrzeugTableModel.setRowCount(0); // Tabelle leeren
-        
-        List<Fahrzeug> fahrzeuge = system.getVerfuegbareFahrzeuge();
-        
+    private void performAvailabilitySearch() {
+        LocalDate[] range = getValidSelectedDates();
+        if (range == null) {
+            return;
+        }
+        loadFahrzeuge(range[0], range[1]);
+    }
+
+    private LocalDate[] getValidSelectedDates() {
+        LocalDate start = getDate(startDateSpinner);
+        LocalDate end = getDate(endDateSpinner);
+
+        if (start == null || end == null) {
+            JOptionPane.showMessageDialog(this,
+                "Bitte gültige Start- und Enddaten wählen.",
+                "Zeitraum wählen",
+                JOptionPane.WARNING_MESSAGE);
+            return null;
+        }
+
+        if (!end.isAfter(start)) {
+            JOptionPane.showMessageDialog(this,
+                "Enddatum muss nach dem Startdatum liegen.",
+                "Zeitraum prüfen",
+                JOptionPane.WARNING_MESSAGE);
+            return null;
+        }
+
+        if (start.isBefore(LocalDate.now())) {
+            JOptionPane.showMessageDialog(this,
+                "Startdatum darf nicht in der Vergangenheit liegen.",
+                "Zeitraum prüfen",
+                JOptionPane.WARNING_MESSAGE);
+            return null;
+        }
+
+        return new LocalDate[] { start, end };
+    }
+
+    private void loadFahrzeuge(LocalDate start, LocalDate end) {
+        fahrzeugTableModel.setRowCount(0);
+        setBuchungButtonState(false);
+
+        List<Fahrzeug> fahrzeuge = bookingController.getVerfuegbareFahrzeugeInZeitraum(start, end);
+
         for (Fahrzeug f : fahrzeuge) {
             Object[] row = {
                 f.getId(),
@@ -237,6 +411,11 @@ public class KundeDashboard extends JPanel {
                 JOptionPane.WARNING_MESSAGE);
             return;
         }
+
+        LocalDate[] range = getValidSelectedDates();
+        if (range == null) {
+            return;
+        }
         
         int fahrzeugId = (int) fahrzeugTableModel.getValueAt(selectedRow, 0);
         
@@ -252,6 +431,7 @@ public class KundeDashboard extends JPanel {
             
             BookingDialog dialog = new BookingDialog(mainFrame, system, authController, 
                                                      bookingController, fahrzeug);
+            dialog.setZeitraum(range[0], range[1]);
             dialog.setVisible(true);
             
             // Nach Dialog-Schließen Daten aktualisieren
@@ -304,6 +484,50 @@ public class KundeDashboard extends JPanel {
                     "Fehler",
                     JOptionPane.ERROR_MESSAGE);
             }
+        }
+    }
+
+    private int addFormRow(JPanel form, GridBagConstraints gbc, int row, String label, JComponent field, Font labelFont) {
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        JLabel lbl = new JLabel(label);
+        if (labelFont != null) {
+            lbl.setFont(labelFont);
+        }
+        form.add(lbl, gbc);
+        gbc.gridx = 1;
+        form.add(field, gbc);
+        return row + 1;
+    }
+
+    private JSpinner createDateSpinner(LocalDate initial) {
+        Date date = Date.from(initial.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        SpinnerDateModel model = new SpinnerDateModel(date, null, null, Calendar.DAY_OF_MONTH);
+        JSpinner spinner = new JSpinner(model);
+        spinner.setEditor(new JSpinner.DateEditor(spinner, "yyyy-MM-dd"));
+        ((JSpinner.DefaultEditor) spinner.getEditor()).getTextField().setColumns(9);
+        ChangeListener changeListener = e -> setBuchungButtonState(false);
+        spinner.addChangeListener(changeListener);
+        return spinner;
+    }
+
+    private LocalDate getDate(JSpinner spinner) {
+        Object value = spinner.getValue();
+        if (value instanceof Date date) {
+            return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        }
+        return null;
+    }
+
+    private void setBuchungButtonState(boolean enabled) {
+        if (neueBuchungButton == null) {
+            return;
+        }
+        neueBuchungButton.setEnabled(enabled);
+        if (enabled) {
+            neueBuchungButton.setBackground(new Color(70, 130, 180));
+        } else {
+            neueBuchungButton.setBackground(new Color(200, 200, 200));
         }
     }
 }

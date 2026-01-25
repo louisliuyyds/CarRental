@@ -7,6 +7,8 @@ import com.carrental.model.Mitarbeiter;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.Optional;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Controller für Authentifizierungs- und Benutzerverwaltungslogik.
@@ -16,6 +18,7 @@ public class AuthController {
 
     private final CarRentalSystem system;
     private Benutzer currentUser; // Aktuell angemeldeter Benutzer
+    private final Map<String, Mitarbeiter> mitarbeiterAccounts;
 
     /**
      * Konstruktor für AuthController.
@@ -25,6 +28,8 @@ public class AuthController {
     public AuthController(CarRentalSystem system) {
         this.system = system;
         this.currentUser = null;
+        this.mitarbeiterAccounts = new HashMap<>();
+        seedDefaultMitarbeiter();
     }
 
     /**
@@ -35,16 +40,27 @@ public class AuthController {
      * @return true wenn Login erfolgreich, sonst false
      */
     public boolean login(String accountName, String passwort) {
+        return login(accountName, passwort, false);
+    }
+
+    public boolean login(String accountName, String passwort, boolean alsMitarbeiter) {
         if (accountName == null || passwort == null || accountName.isBlank() || passwort.isBlank()) {
             return false;
         }
 
+        if (alsMitarbeiter) {
+            Mitarbeiter m = mitarbeiterAccounts.get(accountName);
+            if (m != null && m.login(passwort)) {
+                this.currentUser = m;
+                return true;
+            }
+            return false;
+        }
+
         try {
-            // Versuche als Kunde anzumelden
             Optional<Kunde> kunde = system.getKundeDao().findByAccountName(accountName);
             if (kunde.isPresent()) {
                 if (kunde.get().login(passwort)) {
-                    // Prüfen ob Kunde aktiv ist
                     if (kunde.get().isIstAktiv()) {
                         this.currentUser = kunde.get();
                         return true;
@@ -54,14 +70,6 @@ public class AuthController {
                     }
                 }
             }
-
-            // TODO: Mitarbeiter-Login implementieren wenn MitarbeiterDao verfügbar
-            // Optional<Mitarbeiter> mitarbeiter = system.getMitarbeiterDao().findByAccountName(accountName);
-            // if (mitarbeiter.isPresent() && mitarbeiter.get().login(passwort)) {
-            //     this.currentUser = mitarbeiter.get();
-            //     return true;
-            // }
-
         } catch (SQLException e) {
             System.err.println("Datenbankfehler beim Login: " + e.getMessage());
         }
@@ -265,6 +273,15 @@ public class AuthController {
             return (Mitarbeiter) currentUser;
         }
         return null;
+    }
+
+    private void seedDefaultMitarbeiter() {
+        // Minimal vordefinierte Mitarbeiter-Accounts (Username/Passwort)
+        Mitarbeiter admin = new Mitarbeiter("P-1001", "admin", "admin123", "Admin", "User", "admin@carrental.local");
+        mitarbeiterAccounts.put(admin.getAccountName(), admin);
+
+        Mitarbeiter service = new Mitarbeiter("P-1002", "service", "service123", "Service", "Team", "service@carrental.local");
+        mitarbeiterAccounts.put(service.getAccountName(), service);
     }
 
     /**
