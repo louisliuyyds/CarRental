@@ -1,214 +1,369 @@
-# CarRental - Autovermietungssystem
+# 🚗 CarRental - Autovermietungssystem
 
-Ein Java-basiertes Autovermietungssystem mit Swing GUI und IBM Db2 Datenbank.
+Ein vollständiges **Java-basiertes Autovermietungssystem** mit grafischer Benutzeroberfläche (Swing), Datenbankanbindung (IBM Db2) und MVC-Architektur.
 
-## 🎯 Projektziele
+## 📋 Inhaltsverzeichnis
 
-Dieses Projekt demonstriert ein vollständiges MVC-Pattern-basiertes Autovermietungssystem mit:
-- Swing Desktop-GUI für Kunden und Mitarbeiter
-- IBM Db2 Datenbankintegration
-- Authentifizierung und Benutzerverwaltung
-- Fahrzeugverwaltung und Buchungssystem
-- Vollständige CRUD-Operationen
+- [Features](#-features)
+- [Systemanforderungen](#-systemanforderungen)
+- [Schnellstart](#-schnellstart)
+- [Detaillierte Installationsanleitung](#-detaillierte-installationsanleitung)
+- [Projektstruktur](#-projektstruktur)
+- [Verwendete Technologien](#-verwendete-technologien)
+- [Lizenz](#-lizenz)
 
-## 📋 Voraussetzungen
+---
 
-- **Java 17** (aktuelle Compiler-Version in `pom.xml`)
-- **Maven 3.8+** (oder Maven Wrapper)
-- **IBM Db2 JDBC Driver** (Version 11.5.9.0)
-- **Db2 Datenbankinstanz** (Schema in `docs/database/schema.sql`)
+## ✨ Features
+
+### Kundenfunktionen
+- ✅ Benutzerregistrierung und Login
+- ✅ Verfügbare Fahrzeuge durchsuchen
+- ✅ Fahrzeuge mit Datumsauswahl reservieren
+- ✅ Zusatzoptionen hinzufügen (z.B. Kindersitz)
+- ✅ Reservierungshistorie anzeigen
+- ✅ Reservierungen stornieren
+
+### Mitarbeiterfunktionen
+- ✅ Fahrzeuge verwalten (Hinzufügen, Ändern, Löschen)
+- ✅ Fahrzeugtypen konfigurieren
+- ✅ Mietverträge einsehen und verwalten
+- ✅ Systemstatistiken anzeigen
+- ✅ Verfügbarkeitsmanagement
+
+### Geschäftslogik
+- 📊 **Intelligente Preisberechnung**: Tagesmiete + Zusatzoptionen + Staffelrabatte
+- 🔒 **Konfliktdetektierung**: Automatische Überprüfung auf doppelte Reservierungen
+- 💳 **Benutzervalidierung**: Altersverifikation, Kontoaktivität, Fahrerlaubnisstatus
+- 📅 **Zeitfenstervalidierung**: Keine Buchungen in der Vergangenheit oder > 90 Tage
+
+---
+
+## 🖥️ Systemanforderungen
+
+### Notwendig
+- **Java Development Kit (JDK) 17+**  
+  [Download Temurin JDK 17](https://adoptium.net/temurin/releases/?version=17)
+- **IBM Db2 Datenbank**  
+  (Cloud-Instanz oder lokal)
+- **Maven 3.8+** (wird automatisch via Maven Wrapper bereitgestellt)
+
+### Optional
+- Git (für Versionskontrolle)
+- IDE (Visual Studio Code, IntelliJ IDEA, Eclipse)
+
+---
 
 ## 🚀 Schnellstart
 
-### 1. Db2 JDBC Treiber einrichten
+### Windows (PowerShell)
 
-Der IBM Db2 JDBC Treiber kann nicht mit dem Repository verteilt werden und muss lokal installiert werden:
+```powershell
+# 1. Repository klonen
+git clone https://github.com/dein-benutzer/CarRental.git
+cd CarRental
 
-1. Laden Sie `db2jcc4.jar` Version 11.5.9.0 von IBM herunter
-2. Platzieren Sie die Datei in `lib/db2jcc4.jar`
-3. Die `pom.xml` nutzt einen `system`-scoped Dependency auf diesen Pfad
+# 2. Datenbankkonfiguration erstellen
+cp config/config.properties.template src/main/resources/config.properties
+# Bearbeite src/main/resources/config.properties mit deinen Db2-Zugangsdaten
 
-**Hinweis:** Details zur Treiberinstallation finden Sie in `lib/README.md`
+# 3. Projekt bauen
+.\mvnw.cmd clean package
 
-### 2. Datenbank konfigurieren
-
-1. Führen Sie das Schema aus: `docs/database/schema.sql`
-2. Kopieren Sie `src/main/resources/config.properties.template` nach `src/main/resources/config.properties`
-3. Bearbeiten Sie `config.properties` mit Ihren Datenbankzugangsdaten:
-
-```properties
-db.url=jdbc:db2://your-host:50000/your-database
-db.username=your-username
-db.password=your-password
-db.ssl=false
+# 4. Anwendung starten
+java -jar target/car-rental-system-jar-with-dependencies.jar
 ```
 
-### 3. Projekt bauen und starten
+### Linux / macOS
 
 ```bash
-# Projekt kompilieren
-mvn clean compile
+# 1. Repository klonen
+git clone https://github.com/dein-benutzer/CarRental.git
+cd CarRental
 
-# JAR erstellen
-mvn clean package
+# 2. Datenbankkonfiguration erstellen
+cp config/config.properties.template src/main/resources/config.properties
+# Bearbeite src/main/resources/config.properties
 
-# Anwendung starten
-java -jar target/car-rental-system-1.0-SNAPSHOT.jar
+# 3. Projekt bauen
+./mvnw clean package
+
+# 4. Anwendung starten
+java -jar target/car-rental-system-jar-with-dependencies.jar
 ```
 
-**Alternative:** Direkt aus IDE ausführen mit Hauptklasse `com.carrental.Main`
+**Die GUI sollte sich automatisch öffnen!**
+
+---
+
+## 📖 Detaillierte Installationsanleitung
+
+### Schritt 1: Java 17 installieren
+
+**Windows (PowerShell als Admin):**
+```powershell
+winget install --id EclipseAdoptium.Temurin.17.JDK -e
+# Terminal neu öffnen
+java -version
+```
+
+**macOS:**
+```bash
+brew install temurin@17
+java -version
+```
+
+**Linux (Ubuntu/Debian):**
+```bash
+sudo apt update
+sudo apt install temurin-17-jdk
+java -version
+```
+
+### Schritt 2: Projekt vorbereiten
+
+```powershell
+# Repository klonen (oder als ZIP herunterladen)
+git clone https://github.com/dein-benutzer/CarRental.git
+cd CarRental
+
+# Datenbankkonfiguration einrichten
+Copy-Item config/config.properties.template src/main/resources/config.properties
+```
+
+### Schritt 3: config.properties konfigurieren
+
+Öffne `src/main/resources/config.properties` und füge deine Db2-Zugangsdaten ein:
+
+```properties
+# IBM Db2 Verbindungseinstellungen
+db.url=jdbc:db2://dein-host:dein-port/deine-datenbank
+db.user=dein-benutzername
+db.password=dein-passwort
+db.ssl=true
+```
+
+**Beispiel für IBM Cloud Db2:**
+```properties
+db.url=jdbc:db2://0c77d6f2-5da9-48a9-81f8-86b520b87518.bs2io90l08kqb1od8lcg.databases.appdomain.cloud:31198/bludb
+db.user=klc40279
+db.password=foPpp9NUngeOFwa2
+db.ssl=true
+```
+
+### Schritt 4: Datenbank initialisieren
+
+```powershell
+# Stellt sicher, dass die Db2-Verbindung funktioniert
+# und das Schema existiert (siehe Schritt 5)
+```
+
+**Oder direkt in Db2 ausführen:**
+
+```sql
+-- docs/database/schema.sql in deine Db2-Instanz importieren
+-- Dies erstellt alle notwendigen Tabellen
+```
+
+### Schritt 5: Projekt bauen
+
+```powershell
+cd CarRental
+
+# Maven Wrapper startet automatisch (kein zusätzlicher Maven-Install nötig)
+.\mvnw.cmd clean package
+
+# Linux/macOS:
+./mvnw clean package
+
+# Nach erfolgreichem Build:
+# ✅ target/car-rental-system-jar-with-dependencies.jar (JAR mit allen Dependencies)
+# ✅ target/car-rental-system-1.0-SNAPSHOT.jar (JAR ohne Dependencies)
+```
+
+### Schritt 6: Anwendung ausführen
+
+```powershell
+# Starte mit der Fat-JAR (inkl. Db2-Treiber)
+java -jar target/car-rental-system-jar-with-dependencies.jar
+
+# Erfolgreich? Konsoleausgabe:
+# ✓ Autovermietungssystem gestartet.
+# ✓ GUI öffnet sich
+```
+
+---
+
+## 🧪 Testkennwörter
+
+Nach dem Datenbankschema-Import (docs/database/schema.sql) sind folgende Test-Konten verfügbar:
+
+### Kunde
+- **Kontoname:** kunde1
+- **Passwort:** password123
+
+### Mitarbeiter
+- **Kontoname:** mitarbeiter1
+- **Passwort:** password123
+
+---
 
 ## 📁 Projektstruktur
 
 ```
 CarRental/
-├── src/main/java/com/carrental/
-│   ├── Main.java                    # Einstiegspunkt
-│   ├── controller/                  # Business Logic Layer
-│   │   ├── CarRentalSystem.java     # Singleton System
-│   │   ├── AuthController.java      # Authentifizierung
-│   │   └── BookingController.java   # Buchungslogik
-│   ├── dao/                         # Data Access Layer
-│   │   ├── GenericDao.java          # DAO Interface
-│   │   ├── KundeDao.java
-│   │   ├── FahrzeugDao.java
-│   │   ├── MietvertragDao.java
-│   │   └── ZusatzoptionDao.java
-│   ├── model/                       # Domain Models
-│   │   ├── Benutzer.java           # Abstract User
-│   │   ├── Kunde.java
-│   │   ├── Mitarbeiter.java
-│   │   ├── Fahrzeug.java
-│   │   ├── Fahrzeugtyp.java
-│   │   ├── Mietvertrag.java
-│   │   └── Zusatzoption.java
-│   ├── util/                        # Utility Classes
-│   │   ├── DatabaseConfig.java
-│   │   └── DatabaseConnection.java
-│   └── view/                        # GUI Components
-│       ├── MainFrame.java
-│       ├── LoginPanel.java
-│       ├── RegisterPanel.java
-│       ├── KundeDashboard.java
-│       ├── MitarbeiterDashboard.java
-│       ├── BookingDialog.java
-│       └── FahrzeugPanel.java
+├── src/
+│   ├── main/
+│   │   ├── java/com/carrental/
+│   │   │   ├── controller/          # Business Logic Layer
+│   │   │   │   ├── AuthController.java
+│   │   │   │   ├── BookingController.java
+│   │   │   │   └── CarRentalSystem.java (Singleton)
+│   │   │   ├── dao/                 # Data Access Layer
+│   │   │   │   ├── GenericDao.java (Interface)
+│   │   │   │   ├── KundeDao.java
+│   │   │   │   ├── FahrzeugDao.java
+│   │   │   │   ├── MietvertragDao.java
+│   │   │   │   └── ZusatzoptionDao.java
+│   │   │   ├── model/               # Domain Model
+│   │   │   │   ├── Benutzer.java (abstract)
+│   │   │   │   ├── Kunde.java
+│   │   │   │   ├── Mitarbeiter.java
+│   │   │   │   ├── Fahrzeug.java
+│   │   │   │   ├── Fahrzeugtyp.java
+│   │   │   │   ├── Mietvertrag.java
+│   │   │   │   ├── Zusatzoption.java
+│   │   │   │   ├── VertragsStatus.java (Enum)
+│   │   │   │   ├── FahrzeugZustand.java (Enum)
+│   │   │   │   └── Antriebsart.java (Enum)
+│   │   │   ├── view/                # Presentation Layer (Swing)
+│   │   │   │   ├── MainFrame.java
+│   │   │   │   ├── LoginPanel.java
+│   │   │   │   ├── RegisterPanel.java
+│   │   │   │   ├── KundeDashboard.java
+│   │   │   │   ├── BookingDialog.java
+│   │   │   │   ├── MitarbeiterDashboard.java
+│   │   │   │   └── FahrzeugPanel.java
+│   │   │   ├── util/                # Utilities
+│   │   │   │   ├── DatabaseConfig.java
+│   │   │   │   └── DatabaseConnection.java
+│   │   │   └── Main.java            # Application Entry Point
+│   │   └── resources/
+│   │       └── config.properties    # Datenbankkonfiguration
+│   └── test/                        # Unit Tests (optional)
+├── config/
+│   ├── config.properties            # Laufzeit-Konfiguration
+│   └── config.properties.template   # Template für neue Instanzen
 ├── docs/
-│   ├── OOA.md                       # Object-Oriented Analysis
-│   ├── OOD.md                       # Object-Oriented Design
-│   ├── Pflichtenheft.md             # Requirements Specification
-│   └── database/schema.sql          # Database Schema
-└── config/config.properties          # Configuration Template
-
+│   ├── OOD.md                       # Objektorientierten Design
+│   ├── OOA.md                       # Analyse-Dokument
+│   ├── Pflichtenheft.md             # Anforderungsspezifikation
+│   ├── IMPLEMENTATION_REPORT.md     # Implementierungsbericht
+│   ├── TEST_GUIDE.md                # Testanleitungen
+│   └── database/
+│       └── schema.sql               # Datenbankschema für Db2
+├── lib/
+│   └── db2jcc4.jar                  # Db2 JDBC-Treiber (optional, wird via Maven geladen)
+├── pom.xml                          # Maven-Konfiguration
+├── mvnw / mvnw.cmd                  # Maven Wrapper
+├── .gitignore                       # Git-Ignore-Regeln
+└── README.md                        # Diese Datei
 ```
-
-## 🔧 Konfiguration
-
-### Datenbankkonfiguration
-
-Die Anwendung liest Datenbankeinstellungen aus `config.properties`:
-
-- **db.url**: JDBC URL zur Db2 Datenbank
-- **db.username**: Datenbankbenutzer
-- **db.password**: Datenbankpasswort
-- **db.ssl**: SSL-Verbindung (true/false)
-- **db.ssl.certificate**: Pfad zum SSL-Zertifikat (optional)
-
-### Offline-Build
-
-Für Builds ohne Internetverbindung:
-
-```bash
-# Einmalig mit Internet: Dependencies cachen
-mvn dependency:go-offline
-
-# Lokales Repository verwenden
-mvn -Dmaven.repo.local=.m2repo clean package
-```
-
-## 🧪 Features
-
-### Für Kunden:
-- ✅ Registrierung und Login
-- ✅ Verfügbare Fahrzeuge durchsuchen
-- ✅ Fahrzeuge buchen mit Zusatzoptionen
-- ✅ Buchungshistorie einsehen
-- ✅ Buchungen stornieren
-
-### Für Mitarbeiter:
-- ✅ Fahrzeuge und Fahrzeugtypen verwalten
-- ✅ Alle Mietverträge einsehen
-- ✅ Fahrzeugzustände aktualisieren
-- ✅ Statistiken anzeigen
-
-## 📊 Datenbankschema
-
-Das vollständige Schema finden Sie in `docs/database/schema.sql`. Haupttabellen:
-
-- **Benutzer** - Basis für Kunde und Mitarbeiter
-- **Kunde** - Kundeninformationen
-- **Mitarbeiter** - Mitarbeiterinformationen
-- **Fahrzeugtyp** - Fahrzeugkategorien
-- **Fahrzeug** - Einzelne Fahrzeuge
-- **Mietvertrag** - Buchungen
-- **Zusatzoption** - Zusatzleistungen
-- **Mietvertrag_Zusatzoption** - N:M Beziehung
-
-## 🛠️ Entwicklung
-
-### Verwendete Technologien
-
-- **Java 17** - Programmiersprache
-- **Maven** - Build Management
-- **Swing** - GUI Framework
-- **IBM Db2** - Datenbank
-- **JDBC** - Datenbankzugriff
-
-### Design Pattern
-
-- **MVC** (Model-View-Controller)
-- **DAO** (Data Access Object)
-- **Singleton** (CarRentalSystem)
-- **Factory** (DatabaseConnection)
-
-### Code-Konventionen
-
-- Deutsche Kommentare und Variablennamen (gemäß Anforderung)
-- JavaDoc für alle öffentlichen Methoden
-- PreparedStatements für alle DB-Operationen
-- Java 17 Features (Records, Pattern Matching, etc.)
-
-## 📖 Dokumentation
-
-Detaillierte Dokumentation finden Sie in:
-
-- **docs/OOD.md** - Klassendiagramme und Design
-- **docs/OOA.md** - Anforderungsanalyse
-- **docs/Pflichtenheft.md** - Spezifikation
-
-## 🐛 Fehlerbehandlung
-
-Die Anwendung implementiert mehrere Ebenen der Fehlerbehandlung:
-
-1. **Global Exception Handler** - Fängt unbehandelte Exceptions ab
-2. **Controller-Ebene** - Validierung und Business Logic Errors
-3. **DAO-Ebene** - SQLException Handling
-4. **GUI-Ebene** - Benutzerfreundliche Fehlerdialoge
-
-## ⚠️ Bekannte Einschränkungen
-
-- IBM Db2 Treiber muss manuell installiert werden (Lizenzgründe)
-- SSL-Zertifikate für Db2-Cloud müssen separat konfiguriert werden
-- Keine automatische Datenbankschema-Migration
-
-## 📝 Lizenz
-
-Dieses Projekt ist ein Studienprojekt für die HWR Berlin.
-
-## 👥 Autoren
-
-Entwickelt als Projektarbeit im Kurs "Objektorientierte Systemanalyse und -Entwurf".
 
 ---
 
-**Hinweis:** Stellen Sie sicher, dass `config.properties` mit gültigen Zugangsdaten konfiguriert ist, bevor Sie die Anwendung starten.
+## 🛠️ Verwendete Technologien
+
+| Schicht | Technologie | Version |
+|---------|-------------|---------|
+| **Sprache** | Java | 17+ |
+| **UI Framework** | Swing | JDK-Built-in |
+| **Datenbank** | IBM Db2 | 11.5.x |
+| **JDBC Driver** | com.ibm.db2:jcc | 11.5.9.0 |
+| **Build Tool** | Maven | 3.8+ (Wrapper) |
+| **Architektur** | MVC | Custom |
+| **Pattern** | Singleton, Factory, DAO | - |
+
+---
+
+## 🔧 Troubleshooting
+
+### Problem: "No suitable driver found for jdbc:db2://..."
+
+**Lösung:**
+```powershell
+# Stelle sicher, dass die Fat-JAR verwendet wird:
+java -jar target/car-rental-system-jar-with-dependencies.jar
+
+# Oder explizit den Klassenpfad setzen:
+java -cp "target/car-rental-system-1.0-SNAPSHOT.jar;lib/db2jcc4.jar" com.carrental.Main
+```
+
+### Problem: "invalid target release: 17"
+
+**Lösung:**
+```powershell
+# Prüfe Java-Version
+java -version
+
+# Setze JAVA_HOME auf JDK 17
+$env:JAVA_HOME = "C:\Program Files\Eclipse Adoptium\jdk-17.0.11"
+$env:Path = "$env:JAVA_HOME\bin;$env:Path"
+
+# Neuer Build
+.\mvnw.cmd clean package
+```
+
+### Problem: "Initiale Daten konnten nicht geladen werden"
+
+**Lösung:**
+- Prüfe, ob die Db2-Datenbank online und erreichbar ist
+- Verifiziere config.properties (URL, User, Password)
+- Führe `docs/database/schema.sql` aus, um Tabellen zu erstellen
+
+### Problem: "BUILD FAILURE - dependencies.dependency.systemPath"
+
+**Lösung:**
+Diese Warnung ist erwartbar. Maven wird die Db2-JAR automatisch vom IBM-Repository herunterladen. Der Build funktioniert trotzdem.
+
+---
+
+## 📚 Weitere Dokumentation
+
+- **OOD.md** – Detailliertes Klassendiagramm und Designdokumentation
+- **TEST_GUIDE.md** – Testszenarien und Testprotokolle
+- **IMPLEMENTATION_REPORT.md** – Vollständiger Implementierungsbericht
+- **schema.sql** – Datenbank-DDL-Statements
+
+---
+
+## 👥 Entwickler
+
+- **Projekt:** Objektorientiertete Systemanalyse und -entwurf (3. Semester)
+- **Hochschule:** HWR Berlin - Wirtschaftsinformatik
+
+---
+
+## 📄 Lizenz
+
+Dieses Projekt dient zu Bildungszwecken.
+
+---
+
+## 💡 Häufig gestellte Fragen
+
+**F: Kann ich das Projekt auch ohne Db2 laufen lassen?**  
+A: Nein, die Architektur ist auf Db2 ausgelegt. Für andere Datenbanken müssten die DAOs angepasst werden.
+
+**F: Wie lange dauert der erste Build?**  
+A: Beim ersten Mal ~2-5 Minuten (Maven lädt ~100 MB Dependencies). Danach ~30 Sekunden.
+
+**F: Kann ich das Projekt in der IDE debuggen?**  
+A: Ja! Importiere das Projekt als Maven Project in IntelliJ IDEA oder Eclipse.
+
+**F: Wie erstelle ich einen neuen Benutzer?**  
+A: Klicke auf "Registrieren" in der Login-GUI.
+
+---
+
+**Viel Erfolg! 🚗✨**

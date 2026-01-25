@@ -14,18 +14,40 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <db2.driver.version>11.5.9.0</db2.driver.version>
-        <db2.driver.path>${project.basedir}/lib/db2jcc4.jar</db2.driver.path>
     </properties>
+
+    <!-- Maven Central + IBM Repository für Db2 JDBC -->
+    <repositories>
+        <!-- Maven Central (Standard) -->
+        <repository>
+            <id>central</id>
+            <name>Maven Central Repository</name>
+            <url>https://repo.maven.apache.org/maven2</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
+        
+        <!-- IBM Artifactory (for Db2 Driver) -->
+        <repository>
+            <id>ibm-repo</id>
+            <name>IBM Data Server Driver Repository</name>
+            <url>https://public.dhe.ibm.com/ibmdl/export/pub/software/data/db2/drivers/odbc_cli/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 
     <dependencies>
         <!-- IBM Db2 JDBC Driver -->
         <dependency>
             <groupId>com.ibm.db2</groupId>
             <artifactId>jcc</artifactId>
-            <version>${db2.driver.version}</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/lib/db2jcc4.jar</systemPath>
+            <version>11.5.9.0</version>
         </dependency>
     </dependencies>
 
@@ -43,43 +65,29 @@
                 </configuration>
             </plugin>
 
-            <!-- Maven Jar Plugin - Executable JAR mit Main-Class -->
+            <!-- Maven Assembly Plugin - Fat JAR with all Dependencies -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.3.0</version>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.6.0</version>
                 <configuration>
                     <archive>
                         <manifest>
                             <mainClass>com.carrental.Main</mainClass>
-                            <addClasspath>true</addClasspath>
                         </manifest>
                     </archive>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <finalName>car-rental-system</finalName>
+                    <appendAssemblyId>true</appendAssemblyId>
                 </configuration>
-            </plugin>
-
-            <!-- Kopiert den Treiber von ./lib in target/lib beim Build -->
-            <plugin>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>3.3.1</version>
                 <executions>
                     <execution>
-                        <id>copy-db2-driver</id>
                         <phase>package</phase>
                         <goals>
-                            <goal>copy-resources</goal>
+                            <goal>single</goal>
                         </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>${project.basedir}/lib</directory>
-                                    <includes>
-                                        <include>db2jcc4.jar</include>
-                                    </includes>
-                                </resource>
-                            </resources>
-                        </configuration>
                     </execution>
                 </executions>
             </plugin>
