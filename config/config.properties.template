@@ -1,0 +1,9 @@
+# Beispiel-DB2-Konfiguration (bitte Werte anpassen)
+# Diese Datei nicht mit echten Zugangsdaten committen.
+
+db.url=jdbc:db2://localhost:50000/CARRENTAL
+# Alternativ: jdbc:db2://<host>:<port>/<db>:user=<user>;password=<pwd>;sslConnection=true;
+db.user=meinBenutzer
+db.password=meinPasswort
+# Optional: Pfad zur SSL-Zertifikatsdatei, falls benötigt
+# db.sslCert=/path/to/certificate.arm
