@@ -1,0 +1,21 @@
+# === IDE ===
+.vscode/
+.idea/
+*.iml
+
+# === Build ===
+target/
+*.class
+*.jar
+*.war
+
+# === 敏感配置 ===
+config/config.properties
+src/main/resources/config.properties
+
+# === 系统文件 ===
+.DS_Store
+Thumbs.db
+
+# === 日志 ===
+*.log
