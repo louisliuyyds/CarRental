@@ -2,42 +2,48 @@ package com.carrental.util;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Properties;
 
 /**
- * Stellt Db2-Verbindungen bereit; nutzt PreparedStatement für Operationen.
+ * Factory für Datenbankverbindungen zu IBM Db2.
  */
-public final class DatabaseConnection {
+public class DatabaseConnection {
 
-    private DatabaseConnection() {
-        // Utility-Klasse
-    }
-
-    /**
-     * Baut eine neue Connection auf Basis der geladenen Konfiguration auf.
-     */
-    public static Connection create(DatabaseConfig config) throws SQLException {
-        // Db2-Treiber sicher laden (hilfreich bei manchen Umgebungen)
+    private static void loadDriver() {
         try {
             Class.forName("com.ibm.db2.jcc.DB2Driver");
-        } catch (ClassNotFoundException ignored) {
-            // Wenn der Treiber bereits via Service Provider gefunden wird, ist dies unkritisch.
+        } catch (ClassNotFoundException e) {
+            throw new IllegalStateException(
+                "Db2 JDBC-Treiber (com.ibm.db2.jcc.DB2Driver) nicht gefunden. " +
+                "Stelle sicher, dass lib/db2jcc4.jar im Klassenpfad ist.", e);
         }
-
-        Properties props = new Properties();
-        props.put("user", config.getUser());
-        props.put("password", config.getPassword());
-        config.getSslCert().ifPresent(cert -> props.put("sslCertLocation", cert));
-
-        return DriverManager.getConnection(config.getUrl(), props);
     }
 
     /**
-     * Hilfsfunktion zum sicheren Anlegen eines PreparedStatement.
+     * Erstellt eine neue Verbindung zur Db2-Datenbank.
+     * 
+     * @param config DatabaseConfig mit URL, Benutzer, Passwort, SSL-Flag
+     * @return Connection zur Datenbank
+     * @throws SQLException falls Verbindung fehlschlägt
      */
-    public static PreparedStatement prepare(Connection connection, String sql) throws SQLException {
-        return connection.prepareStatement(sql);
+    public static Connection create(DatabaseConfig config) throws SQLException {
+        loadDriver();
+        
+        // URL: jdbc:db2://host:port/db (OHNE user/password/properties)
+        String baseUrl = config.url();
+        
+        // Properties separieren
+        Properties props = new Properties();
+        props.setProperty("user", config.user());
+        props.setProperty("password", config.password());
+        
+        // SSL-Connection als Property, nicht in URL
+        if (config.ssl()) {
+            props.setProperty("sslConnection", "true");
+        }
+        
+        // Verbindung mit getrennten Properties
+        return DriverManager.getConnection(baseUrl, props);
     }
 }

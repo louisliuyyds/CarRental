@@ -2,69 +2,109 @@ package com.carrental.util;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.Properties;
 
 /**
- * Liest die Datenbank-Parameter aus einer Properties-Datei (Deutsch kommentiert).
+ * Konfigurationsklasse für Datenbankverbindungen.
+ * Lädt Einstellungen aus config.properties.
  */
-public final class DatabaseConfig {
+public class DatabaseConfig {
 
     private final String url;
     private final String user;
     private final String password;
-    private final Optional<String> sslCert;
+    private final boolean ssl;
 
-    private DatabaseConfig(String url, String user, String password, Optional<String> sslCert) {
-        this.url = Objects.requireNonNull(url, "url darf nicht null sein");
-        this.user = Objects.requireNonNull(user, "user darf nicht null sein");
-        this.password = Objects.requireNonNull(password, "password darf nicht null sein");
-        this.sslCert = Objects.requireNonNull(sslCert, "sslCert darf nicht null sein");
+    /**
+     * Konstruktor für DatabaseConfig.
+     * 
+     * @param url Datenbankverbindungs-URL
+     * @param user Benutzername
+     * @param password Passwort
+     * @param ssl SSL-Verbindung aktivieren
+     */
+    public DatabaseConfig(String url, String user, String password, boolean ssl) {
+        this.url = url;
+        this.user = user;
+        this.password = password;
+        this.ssl = ssl;
     }
 
     /**
-     * Lädt die Konfiguration aus einer Klassenpfad-Ressource (z. B. src/main/resources/config.properties).
+     * Gibt die Datenbank-URL zurück.
+     * 
+     * @return URL
      */
-    public static DatabaseConfig load(String resourcePath) throws IOException {
-        Properties props = new Properties();
-        try (InputStream in = DatabaseConfig.class.getClassLoader().getResourceAsStream(resourcePath)) {
-            if (in == null) {
-                throw new IOException("Konfigurationsdatei nicht gefunden: " + resourcePath);
-            }
-            props.load(in);
-        }
-
-        String url = getRequired(props, "db.url");
-        String user = getRequired(props, "db.user");
-        String password = getRequired(props, "db.password");
-        Optional<String> sslCert = Optional.ofNullable(props.getProperty("db.sslCert"))
-                .filter(s -> !s.isBlank());
-
-        return new DatabaseConfig(url, user, password, sslCert);
-    }
-
-    private static String getRequired(Properties props, String key) throws IOException {
-        String value = props.getProperty(key);
-        if (value == null || value.isBlank()) {
-            throw new IOException("Pflicht-Property fehlt: " + key);
-        }
-        return value.trim();
-    }
-
-    public String getUrl() {
+    public String url() {
         return url;
     }
 
-    public String getUser() {
+    /**
+     * Gibt den Benutzernamen zurück.
+     * 
+     * @return Benutzername
+     */
+    public String user() {
         return user;
     }
 
-    public String getPassword() {
+    /**
+     * Gibt das Passwort zurück.
+     * 
+     * @return Passwort
+     */
+    public String password() {
         return password;
     }
 
-    public Optional<String> getSslCert() {
-        return sslCert;
+    /**
+     * Gibt an, ob SSL aktiviert ist.
+     * 
+     * @return true falls SSL aktiv
+     */
+    public boolean ssl() {
+        return ssl;
+    }
+
+    /**
+     * Lädt die Konfiguration aus einer Properties-Datei.
+     * 
+     * @param propertiesFile Der Pfad zur Properties-Datei (Klassenpfad oder absolut)
+     * @return Eine neue DatabaseConfig-Instanz
+     * @throws IOException falls Datei nicht gelesen werden kann
+     */
+    public static DatabaseConfig load(String propertiesFile) throws IOException {
+        Properties props = new Properties();
+        
+        // Versuche zuerst aus Klassenpfad zu laden (für JAR/IDE)
+        try (InputStream is = DatabaseConfig.class.getClassLoader().getResourceAsStream(propertiesFile)) {
+            if (is != null) {
+                props.load(is);
+            } else {
+                // Fallback: direkte Datei
+                props.load(new java.io.FileInputStream(propertiesFile));
+            }
+        }
+        
+        String url = props.getProperty("db.url", "");
+        String user = props.getProperty("db.user", "");
+        String password = props.getProperty("db.password", "");
+        String sslStr = props.getProperty("db.ssl", "false");
+        boolean ssl = Boolean.parseBoolean(sslStr);
+        
+        if (url.isEmpty() || user.isEmpty() || password.isEmpty()) {
+            throw new IOException("Erforderliche Properties nicht gefunden (db.url, db.user, db.password)");
+        }
+        
+        return new DatabaseConfig(url, user, password, ssl);
+    }
+
+    @Override
+    public String toString() {
+        return "DatabaseConfig{" +
+                "url='" + url + '\'' +
+                ", user='" + user + '\'' +
+                ", ssl=" + ssl +
+                '}';
     }
 }

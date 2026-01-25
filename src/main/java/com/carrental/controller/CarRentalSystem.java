@@ -80,12 +80,12 @@ public class CarRentalSystem {
      */
     private void loadInitialData() {
         try {
-            this.kundenListe = kundeDao.findAll();
-            this.fahrzeugListe = fahrzeugDao.findAll();
-            this.mietvertraege = mietvertragDao.findAll();
-        } catch (SQLException e) {
-            // Initial-Laden fehlgeschlagen - Listen bleiben leer
-            System.err.println("Warnung: Initiale Daten konnten nicht geladen werden: " + e.getMessage());
+            // Test-Kunden laden
+            var allCustomers = kundeDao.findAll();
+            System.out.println("✓ " + allCustomers.size() + " Kunden geladen.");
+        } catch (Exception e) {
+            System.err.println("⚠ Warnung: Initiale Daten konnten nicht geladen werden: " + e.getMessage());
+            // Nicht fatal – App läuft trotzdem
         }
     }
 
