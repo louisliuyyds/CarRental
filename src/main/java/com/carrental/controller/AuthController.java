@@ -49,9 +49,21 @@ public class AuthController {
         }
 
         if (alsMitarbeiter) {
-            Mitarbeiter m = mitarbeiterAccounts.get(accountName);
-            if (m != null && m.login(passwort)) {
-                this.currentUser = m;
+            try {
+                var daoResult = system.getMitarbeiterDao().findByAccountName(accountName);
+                if (daoResult.isPresent()) {
+                    Mitarbeiter m = daoResult.get();
+                    if (m.login(passwort)) {
+                        this.currentUser = m;
+                        return true;
+                    }
+                }
+            } catch (SQLException e) {
+                System.err.println("Datenbankfehler beim Mitarbeiter-Login: " + e.getMessage());
+            }
+            Mitarbeiter fallback = mitarbeiterAccounts.get(accountName);
+            if (fallback != null && fallback.login(passwort)) {
+                this.currentUser = fallback;
                 return true;
             }
             return false;

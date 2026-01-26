@@ -9,6 +9,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.Collections;
+import java.util.stream.Collectors;
 
 /**
  * Zentrale Singleton-Klasse zur Steuerung des Autovermietungssystems.
@@ -26,6 +30,7 @@ public class CarRentalSystem {
     private final FahrzeugDao fahrzeugDao;
     private final MietvertragDao mietvertragDao;
     private final ZusatzoptionDao zusatzoptionDao;
+    private final MitarbeiterDao mitarbeiterDao;
     
     // In-Memory-Listen für schnellen Zugriff (optional, je nach Implementierung)
     private List<Kunde> kundenListe;
@@ -43,6 +48,7 @@ public class CarRentalSystem {
         this.fahrzeugDao = new FahrzeugDao(config);
         this.mietvertragDao = new MietvertragDao(config);
         this.zusatzoptionDao = new ZusatzoptionDao(config);
+        this.mitarbeiterDao = new MitarbeiterDao(config);
         
         // Listen initialisieren
         this.kundenListe = new ArrayList<>();
@@ -201,6 +207,37 @@ public class CarRentalSystem {
 
     public ZusatzoptionDao getZusatzoptionDao() {
         return zusatzoptionDao;
+    }
+
+    public MitarbeiterDao getMitarbeiterDao() {
+        return mitarbeiterDao;
+    }
+
+    // ----- Simple in-memory notification API -----
+    private final Map<Integer, List<String>> notifications = new ConcurrentHashMap<>();
+
+    /**
+     * Fügt eine Benachrichtigung für einen Kunden hinzu (in-memory).
+     * @param kundeId Kundendatenbank-ID
+     * @param msg Nachricht
+     */
+    public void addNotification(int kundeId, String msg) {
+        notifications.compute(kundeId, (k, list) -> {
+            if (list == null) list = new ArrayList<>();
+            list.add(msg);
+            return list;
+        });
+    }
+
+    /**
+     * Gibt alle gesammelten Benachrichtigungen für einen Kunden zurück und leert die Liste.
+     * @param kundeId Kundendatenbank-ID
+     * @return Liste der Nachrichten (leer falls keine vorhanden)
+     */
+    public List<String> getAndClearNotifications(int kundeId) {
+        List<String> list = notifications.remove(kundeId);
+        if (list == null) return Collections.emptyList();
+        return list.stream().collect(Collectors.toList());
     }
 
     /**

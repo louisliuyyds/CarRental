@@ -6,6 +6,7 @@ package com.carrental.model;
  */
 public class Mitarbeiter extends Benutzer {
 
+    private int id;
     private String personalnummer;
     private int berechtigungsStufe;
 
@@ -49,5 +50,13 @@ public class Mitarbeiter extends Benutzer {
 
     public void setBerechtigungsStufe(int berechtigungsStufe) {
         this.berechtigungsStufe = berechtigungsStufe;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 }

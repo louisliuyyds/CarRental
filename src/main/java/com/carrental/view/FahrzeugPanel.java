@@ -23,6 +23,9 @@ public class FahrzeugPanel extends JPanel {
     // Fahrzeuge Tab
     private DefaultTableModel fahrzeugTableModel;
     private JTable fahrzeugTable;
+    private JButton editFahrzeugButton;
+    private JButton deleteFahrzeugButton;
+    private JButton zustandFahrzeugButton;
     
     // Fahrzeugtypen Tab
     private DefaultTableModel fahrzeugtypTableModel;
@@ -68,26 +71,31 @@ public class FahrzeugPanel extends JPanel {
         JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT));
         
         JButton refreshButton = new JButton("Aktualisieren");
+        refreshButton.setFont(new Font("Arial", Font.BOLD, 16));
         refreshButton.addActionListener(e -> loadFahrzeuge());
         toolbar.add(refreshButton);
         
         JButton addButton = new JButton("Hinzufügen");
+        addButton.setFont(new Font("Arial", Font.BOLD, 16));
         addButton.setBackground(new Color(70, 130, 180));
         addButton.setForeground(Color.WHITE);
         addButton.addActionListener(e -> addFahrzeug());
         toolbar.add(addButton);
         
-        JButton editButton = new JButton("Bearbeiten");
-        editButton.addActionListener(e -> editFahrzeug());
-        toolbar.add(editButton);
+        editFahrzeugButton = new JButton("Bearbeiten");
+        editFahrzeugButton.setFont(new Font("Arial", Font.BOLD, 16));
+        editFahrzeugButton.addActionListener(e -> editFahrzeug());
+        toolbar.add(editFahrzeugButton);
         
-        JButton deleteButton = new JButton("Löschen");
-        deleteButton.addActionListener(e -> deleteFahrzeug());
-        toolbar.add(deleteButton);
+        deleteFahrzeugButton = new JButton("Löschen");
+        deleteFahrzeugButton.setFont(new Font("Arial", Font.BOLD, 16));
+        deleteFahrzeugButton.addActionListener(e -> deleteFahrzeug());
+        toolbar.add(deleteFahrzeugButton);
         
-        JButton zustandButton = new JButton("Zustand ändern");
-        zustandButton.addActionListener(e -> changeZustand());
-        toolbar.add(zustandButton);
+        zustandFahrzeugButton = new JButton("Zustand ändern");
+        zustandFahrzeugButton.setFont(new Font("Arial", Font.BOLD, 16));
+        zustandFahrzeugButton.addActionListener(e -> changeZustand());
+        toolbar.add(zustandFahrzeugButton);
         
         panel.add(toolbar, BorderLayout.NORTH);
         
@@ -104,12 +112,34 @@ public class FahrzeugPanel extends JPanel {
         fahrzeugTable = new JTable(fahrzeugTableModel);
         fahrzeugTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         fahrzeugTable.getTableHeader().setReorderingAllowed(false);
-        fahrzeugTable.setRowHeight(25);
+        fahrzeugTable.setRowHeight(35);
+        fahrzeugTable.setFont(new Font("Arial", Font.PLAIN, 14));
+        fahrzeugTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 14));
+        fahrzeugTable.getSelectionModel().addListSelectionListener(e -> updateFahrzeugButtonState());
+
+        updateFahrzeugButtonState();
         
         JScrollPane scrollPane = new JScrollPane(fahrzeugTable);
         panel.add(scrollPane, BorderLayout.CENTER);
         
         return panel;
+    }
+
+    private void updateFahrzeugButtonState() {
+        boolean hasSelection = fahrzeugTable != null && fahrzeugTable.getSelectedRow() != -1;
+        if (editFahrzeugButton != null) editFahrzeugButton.setEnabled(true);
+        if (deleteFahrzeugButton != null) deleteFahrzeugButton.setEnabled(true);
+        if (zustandFahrzeugButton != null) zustandFahrzeugButton.setEnabled(true);
+
+        if (!hasSelection) {
+            if (editFahrzeugButton != null) editFahrzeugButton.setToolTipText("Bitte zuerst ein Fahrzeug auswählen.");
+            if (deleteFahrzeugButton != null) deleteFahrzeugButton.setToolTipText("Bitte zuerst ein Fahrzeug auswählen.");
+            if (zustandFahrzeugButton != null) zustandFahrzeugButton.setToolTipText("Bitte zuerst ein Fahrzeug auswählen.");
+        } else {
+            if (editFahrzeugButton != null) editFahrzeugButton.setToolTipText(null);
+            if (deleteFahrzeugButton != null) deleteFahrzeugButton.setToolTipText(null);
+            if (zustandFahrzeugButton != null) zustandFahrzeugButton.setToolTipText(null);
+        }
     }
 
     /**
@@ -123,20 +153,24 @@ public class FahrzeugPanel extends JPanel {
         JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT));
         
         JButton refreshButton = new JButton("Aktualisieren");
+        refreshButton.setFont(new Font("Arial", Font.BOLD, 16));
         refreshButton.addActionListener(e -> loadFahrzeugtypen());
         toolbar.add(refreshButton);
         
         JButton addButton = new JButton("Hinzufügen");
+        addButton.setFont(new Font("Arial", Font.BOLD, 16));
         addButton.setBackground(new Color(70, 130, 180));
         addButton.setForeground(Color.WHITE);
         addButton.addActionListener(e -> addFahrzeugtyp());
         toolbar.add(addButton);
         
         JButton editButton = new JButton("Bearbeiten");
+        editButton.setFont(new Font("Arial", Font.BOLD, 16));
         editButton.addActionListener(e -> editFahrzeugtyp());
         toolbar.add(editButton);
         
         JButton deleteButton = new JButton("Löschen");
+        deleteButton.setFont(new Font("Arial", Font.BOLD, 16));
         deleteButton.addActionListener(e -> deleteFahrzeugtyp());
         toolbar.add(deleteButton);
         
@@ -155,7 +189,9 @@ public class FahrzeugPanel extends JPanel {
         fahrzeugtypTable = new JTable(fahrzeugtypTableModel);
         fahrzeugtypTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         fahrzeugtypTable.getTableHeader().setReorderingAllowed(false);
-        fahrzeugtypTable.setRowHeight(25);
+        fahrzeugtypTable.setRowHeight(35);
+        fahrzeugtypTable.setFont(new Font("Arial", Font.PLAIN, 14));
+        fahrzeugtypTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 14));
         
         JScrollPane scrollPane = new JScrollPane(fahrzeugtypTable);
         panel.add(scrollPane, BorderLayout.CENTER);

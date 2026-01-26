@@ -148,9 +148,22 @@ public class LoginPanel extends JPanel {
             // Felder leeren
             accountNameField.setText("");
             passwortField.setText("");
-            
-            // Zum entsprechenden Dashboard weiterleiten
+
+            // Wenn Kunde angemeldet, Benachrichtigungen anzeigen (falls vorhanden)
             if (authController.isKunde()) {
+                var kunde = authController.getCurrentKunde();
+                if (kunde != null) {
+                    var notes = mainFrame.getSystem().getAndClearNotifications(kunde.getId());
+                    if (notes != null && !notes.isEmpty()) {
+                        String message = String.join("\n\n", notes);
+                        JOptionPane.showMessageDialog(this,
+                            message,
+                            "Nachrichten",
+                            JOptionPane.INFORMATION_MESSAGE);
+                    }
+                }
+
+                // Zum Kunden-Dashboard weiterleiten
                 mainFrame.showKundeDashboard();
             } else if (authController.isMitarbeiter()) {
                 mainFrame.showMitarbeiterDashboard();

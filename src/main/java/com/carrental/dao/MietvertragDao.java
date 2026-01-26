@@ -39,14 +39,14 @@ public class MietvertragDao implements GenericDao<Mietvertrag> {
                 stmt.setString(4, vertrag.getStatus().name());
                 stmt.setDouble(5, vertrag.getGesamtPreis());
                 
-                // Hinweis: Kunde und Fahrzeug müssen eine ID-Eigenschaft haben
-                // In der aktuellen Implementierung fehlt diese - hier Platzhalter
-                stmt.setInt(6, vertrag.getKunde() != null ? vertrag.getKunde().getKundennummer() : 0);
-                stmt.setInt(7, vertrag.getFahrzeug() != null ? vertrag.getFahrzeug().getId() : 0);
-                
-                if (vertrag.getMitarbeiter() != null) {
-                    // Mitarbeiter hat ebenfalls keine ID in unserem Model
-                    stmt.setNull(8, Types.INTEGER);
+                int kundeId = resolveKundeId(conn, vertrag.getKunde());
+                int fahrzeugId = resolveFahrzeugId(conn, vertrag.getFahrzeug());
+                Integer mitarbeiterId = resolveMitarbeiterId(conn, vertrag.getMitarbeiter());
+
+                stmt.setInt(6, kundeId);
+                stmt.setInt(7, fahrzeugId);
+                if (mitarbeiterId != null) {
+                    stmt.setInt(8, mitarbeiterId);
                 } else {
                     stmt.setNull(8, Types.INTEGER);
                 }
@@ -217,11 +217,15 @@ public class MietvertragDao implements GenericDao<Mietvertrag> {
                 stmt.setDate(3, Date.valueOf(vertrag.getEndDatum()));
                 stmt.setString(4, vertrag.getStatus().name());
                 stmt.setDouble(5, vertrag.getGesamtPreis());
-                stmt.setInt(6, vertrag.getKunde() != null ? vertrag.getKunde().getKundennummer() : 0);
-                stmt.setInt(7, vertrag.getFahrzeug() != null ? vertrag.getFahrzeug().getId() : 0);
-                
-                if (vertrag.getMitarbeiter() != null) {
-                    stmt.setNull(8, Types.INTEGER);
+
+                int kundeId = resolveKundeId(conn, vertrag.getKunde());
+                int fahrzeugId = resolveFahrzeugId(conn, vertrag.getFahrzeug());
+                Integer mitarbeiterId = resolveMitarbeiterId(conn, vertrag.getMitarbeiter());
+
+                stmt.setInt(6, kundeId);
+                stmt.setInt(7, fahrzeugId);
+                if (mitarbeiterId != null) {
+                    stmt.setInt(8, mitarbeiterId);
                 } else {
                     stmt.setNull(8, Types.INTEGER);
                 }
@@ -333,6 +337,70 @@ public class MietvertragDao implements GenericDao<Mietvertrag> {
         }
     }
 
+    private int resolveKundeId(Connection conn, Kunde kunde) throws SQLException {
+        if (kunde == null) {
+            throw new SQLException("Kunde darf beim Mietvertrag nicht fehlen.");
+        }
+        if (kunde.getId() > 0) {
+            return kunde.getId();
+        }
+
+        String sql = "SELECT ID FROM Kunde WHERE Kundennummer = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, kunde.getKundennummer());
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    int id = rs.getInt("ID");
+                    kunde.setId(id);
+                    return id;
+                }
+            }
+        }
+        throw new SQLException("Kein Kunde mit Kundennummer " + kunde.getKundennummer() + " gefunden.");
+    }
+
+    private int resolveFahrzeugId(Connection conn, Fahrzeug fahrzeug) throws SQLException {
+        if (fahrzeug == null) {
+            throw new SQLException("Fahrzeug darf beim Mietvertrag nicht fehlen.");
+        }
+        if (fahrzeug.getId() > 0) {
+            return fahrzeug.getId();
+        }
+
+        String sql = "SELECT ID FROM Fahrzeug WHERE Kennzeichen = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, fahrzeug.getKennzeichen());
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    int id = rs.getInt("ID");
+                    fahrzeug.setId(id);
+                    return id;
+                }
+            }
+        }
+        throw new SQLException("Kein Fahrzeug mit Kennzeichen " + fahrzeug.getKennzeichen() + " gefunden.");
+    }
+
+    private Integer resolveMitarbeiterId(Connection conn, Mitarbeiter mitarbeiter) throws SQLException {
+        if (mitarbeiter == null) {
+            return null;
+        }
+
+        // Mitarbeiter besitzen derzeit keinen persistenten Datensatz.
+        // Versuche dennoch, eine ID anhand der Personalnummer zu finden.
+        String sql = "SELECT ID FROM Mitarbeiter WHERE Personalnummer = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, mitarbeiter.getPersonalnummer());
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("ID");
+                }
+            }
+        }
+
+        return null;
+    }
+
     /**
      * Hilfsmethode zum Mappen eines ResultSet auf ein Mietvertrag-Objekt.
      */
@@ -370,7 +438,17 @@ public class MietvertragDao implements GenericDao<Mietvertrag> {
                     rs.getString("Nachname"),
                     rs.getString("Email")
                 );
-                // Weitere Kunde-Felder setzen...
+                kunde.setId(rs.getInt("Kunde_ID"));
+                kunde.setStrasse(rs.getString("Strasse"));
+                kunde.setHausnummer(rs.getString("Hausnummer"));
+                kunde.setPlz(rs.getString("PLZ"));
+                kunde.setOrt(rs.getString("Ort"));
+                Date kundeGeburtstag = rs.getDate("Geburtstag");
+                if (kundeGeburtstag != null) {
+                    kunde.setGeburtstag(kundeGeburtstag.toLocalDate());
+                }
+                kunde.setFuehrerscheinNummer(rs.getString("FuehrerscheinNummer"));
+                kunde.setIstAktiv(rs.getInt("IstAktiv") == 1);
                 vertrag.setKunde(kunde);
             }
         } catch (SQLException e) {

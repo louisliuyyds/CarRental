@@ -9,6 +9,8 @@ import java.time.Period;
  */
 public class Kunde extends Benutzer {
 
+    private int id;
+
     private int kundennummer;
     private String strasse;
     private String hausnummer;
@@ -64,6 +66,14 @@ public class Kunde extends Benutzer {
     // Getter und Setter
     public int getKundennummer() {
         return kundennummer;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public void setKundennummer(int kundennummer) {

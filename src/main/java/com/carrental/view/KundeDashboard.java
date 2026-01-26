@@ -4,19 +4,15 @@ import com.carrental.controller.AuthController;
 import com.carrental.controller.BookingController;
 import com.carrental.controller.CarRentalSystem;
 import com.carrental.model.Fahrzeug;
+import com.carrental.model.FahrzeugZustand;
 import com.carrental.model.Kunde;
 import com.carrental.model.Mietvertrag;
 
 import javax.swing.*;
-import javax.swing.SpinnerDateModel;
-import javax.swing.event.ChangeListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -37,8 +33,10 @@ public class KundeDashboard extends JPanel {
     private JButton neueBuchungButton;
     private JButton logoutButton;
     private JLabel welcomeLabel;
-    private JSpinner startDateSpinner;
-    private JSpinner endDateSpinner;
+    private LocalDate startDate;
+    private LocalDate endDate;
+    private JButton startDateButton;
+    private JButton endDateButton;
     private JButton verfuegbarkeitButton;
     private JTabbedPane tabbedPane;
 
@@ -97,24 +95,45 @@ public class KundeDashboard extends JPanel {
     private JPanel createFahrzeugPanel() {
         JPanel panel = new JPanel(new BorderLayout());
 
+        // Initialize default dates
+        startDate = LocalDate.now().plusDays(1);
+        endDate = LocalDate.now().plusDays(8);
+        
+        // Create date filter panel
         JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
-        filterPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 5, 10));
-
-        filterPanel.add(new JLabel("Start:"));
-        startDateSpinner = createDateSpinner(LocalDate.now().plusDays(1));
-        filterPanel.add(startDateSpinner);
-
-        filterPanel.add(new JLabel("Ende:"));
-        endDateSpinner = createDateSpinner(LocalDate.now().plusDays(8));
-        filterPanel.add(endDateSpinner);
-
+        filterPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        JLabel startLabel = new JLabel("Startdatum:");
+        startLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        filterPanel.add(startLabel);
+        
+        startDateButton = new JButton(formatDate(startDate));
+        startDateButton.setFont(new Font("Arial", Font.PLAIN, 13));
+        startDateButton.setPreferredSize(new Dimension(150, 30));
+        startDateButton.addActionListener(e -> showDatePickerDialog(true));
+        filterPanel.add(startDateButton);
+        
+        filterPanel.add(Box.createHorizontalStrut(20));
+        
+        JLabel endLabel = new JLabel("Enddatum:");
+        endLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        filterPanel.add(endLabel);
+        
+        endDateButton = new JButton(formatDate(endDate));
+        endDateButton.setFont(new Font("Arial", Font.PLAIN, 13));
+        endDateButton.setPreferredSize(new Dimension(150, 30));
+        endDateButton.addActionListener(e -> showDatePickerDialog(false));
+        filterPanel.add(endDateButton);
+        
+        filterPanel.add(Box.createHorizontalStrut(20));
+        
         verfuegbarkeitButton = new JButton("Verfügbarkeit anzeigen");
+        verfuegbarkeitButton.setFont(new Font("Arial", Font.BOLD, 13));
+        verfuegbarkeitButton.setBackground(new Color(70, 130, 180));
+        verfuegbarkeitButton.setForeground(Color.BLACK);
+        verfuegbarkeitButton.setPreferredSize(new Dimension(200, 30));
         verfuegbarkeitButton.addActionListener(e -> performAvailabilitySearch());
         filterPanel.add(verfuegbarkeitButton);
-
-        JLabel hintLabel = new JLabel("Bitte zuerst Zeitraum wählen, dann Fahrzeug wählen.");
-        hintLabel.setForeground(Color.DARK_GRAY);
-        filterPanel.add(hintLabel);
 
         panel.add(filterPanel, BorderLayout.NORTH);
         
@@ -134,7 +153,7 @@ public class KundeDashboard extends JPanel {
         fahrzeugTable.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 boolean selected = fahrzeugTable.getSelectedRow() != -1;
-                setBuchungButtonState(selected);
+                setBuchungButtonState(selected && isSelectedFahrzeugVerfuegbar());
             }
         });
         
@@ -231,7 +250,8 @@ public class KundeDashboard extends JPanel {
         }
 
         LocalDate geburtstag = kunde.getGeburtstag() != null ? kunde.getGeburtstag() : LocalDate.now().minusYears(20);
-        JSpinner geburtstagSpinner = createDateSpinner(geburtstag);
+        CalendarPanel geburtstagCalendar = new CalendarPanel();
+        geburtstagCalendar.setSelectedDate(geburtstag);
 
         int row = 0;
         row = addFormRow(form, gbc, row, "Vorname", vornameField, labelFont);
@@ -249,11 +269,7 @@ public class KundeDashboard extends JPanel {
         geburtLabel.setFont(labelFont);
         form.add(geburtLabel, gbc);
         gbc.gridx = 1;
-        JComponent spinnerComp = geburtstagSpinner.getEditor();
-        if (spinnerComp instanceof JSpinner.DefaultEditor editor) {
-            editor.getTextField().setFont(fieldFont);
-        }
-        form.add(geburtstagSpinner, gbc);
+        form.add(geburtstagCalendar, gbc);
 
         panel.add(form, BorderLayout.CENTER);
 
@@ -268,7 +284,7 @@ public class KundeDashboard extends JPanel {
                 kunde.setPlz(plzField.getText().trim());
                 kunde.setOrt(ortField.getText().trim());
                 kunde.setFuehrerscheinNummer(fuehrerscheinField.getText().trim());
-                kunde.setGeburtstag(getDate(geburtstagSpinner));
+                kunde.setGeburtstag(geburtstagCalendar.getSelectedDate());
 
                 system.getKundeDao().update(kunde);
                 updateWelcomeLabel();
@@ -305,6 +321,51 @@ public class KundeDashboard extends JPanel {
         welcomeLabel.setText("Willkommen, " + name);
     }
 
+    private String formatDate(LocalDate date) {
+        if (date == null) {
+            return "Datum wählen";
+        }
+        return String.format("%02d.%02d.%d", date.getDayOfMonth(), date.getMonthValue(), date.getYear());
+    }
+
+    private void showDatePickerDialog(boolean isStartDate) {
+        JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), 
+                                     isStartDate ? "Startdatum wählen" : "Enddatum wählen", true);
+        dialog.setLayout(new BorderLayout(10, 10));
+        
+        CalendarPanel calendar = new CalendarPanel();
+        calendar.setSelectedDate(isStartDate ? startDate : endDate);
+        dialog.add(calendar, BorderLayout.CENTER);
+        
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        
+        JButton okButton = new JButton("OK");
+        okButton.setFont(new Font("Arial", Font.BOLD, 13));
+        okButton.addActionListener(e -> {
+            LocalDate selectedDate = calendar.getSelectedDate();
+            if (isStartDate) {
+                startDate = selectedDate;
+                startDateButton.setText(formatDate(startDate));
+            } else {
+                endDate = selectedDate;
+                endDateButton.setText(formatDate(endDate));
+            }
+            dialog.dispose();
+        });
+        buttonPanel.add(okButton);
+        
+        JButton cancelButton = new JButton("Abbrechen");
+        cancelButton.setFont(new Font("Arial", Font.PLAIN, 13));
+        cancelButton.addActionListener(e -> dialog.dispose());
+        buttonPanel.add(cancelButton);
+        
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+        
+        dialog.pack();
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+    }
+
     /**
      * Lädt verfügbare Fahrzeuge in die Tabelle.
      */
@@ -317,8 +378,8 @@ public class KundeDashboard extends JPanel {
     }
 
     private LocalDate[] getValidSelectedDates() {
-        LocalDate start = getDate(startDateSpinner);
-        LocalDate end = getDate(endDateSpinner);
+        LocalDate start = startDate;
+        LocalDate end = endDate;
 
         if (start == null || end == null) {
             JOptionPane.showMessageDialog(this,
@@ -354,6 +415,7 @@ public class KundeDashboard extends JPanel {
         List<Fahrzeug> fahrzeuge = bookingController.getVerfuegbareFahrzeugeInZeitraum(start, end);
 
         for (Fahrzeug f : fahrzeuge) {
+            FahrzeugZustand anzeigeZustand = FahrzeugZustand.VERFUEGBAR;
             Object[] row = {
                 f.getId(),
                 f.getKennzeichen(),
@@ -361,11 +423,33 @@ public class KundeDashboard extends JPanel {
                 f.getFahrzeugtyp() != null ? f.getFahrzeugtyp().getModellBezeichnung() : "-",
                 f.getFahrzeugtyp() != null ? f.getFahrzeugtyp().getKategorie() : "-",
                 f.getFahrzeugtyp() != null ? String.format("%.2f", f.getFahrzeugtyp().getStandardTagesPreis()) : "-",
-                f.getZustand()
+                anzeigeZustand
             };
             fahrzeugTableModel.addRow(row);
         }
     }
+
+    private boolean isSelectedFahrzeugVerfuegbar() {
+        int selectedRow = fahrzeugTable.getSelectedRow();
+        if (selectedRow == -1) {
+            return false;
+        }
+        LocalDate[] range = getValidSelectedDates();
+        if (range == null) {
+            return false;
+        }
+        int fahrzeugId = (int) fahrzeugTableModel.getValueAt(selectedRow, 0);
+        try {
+            Fahrzeug fahrzeug = system.getFahrzeugDao().findById(fahrzeugId).orElse(null);
+            if (fahrzeug == null) {
+                return false;
+            }
+            return bookingController.isFahrzeugVerfuegbar(fahrzeug, range[0], range[1]);
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
 
     /**
      * Lädt die Buchungen des aktuellen Kunden.
@@ -428,6 +512,14 @@ public class KundeDashboard extends JPanel {
                     JOptionPane.ERROR_MESSAGE);
                 return;
             }
+
+            if (!bookingController.isFahrzeugVerfuegbar(fahrzeug, range[0], range[1])) {
+                JOptionPane.showMessageDialog(this,
+                    "Das ausgewählte Fahrzeug ist im gewünschten Zeitraum nicht verfügbar.",
+                    "Nicht verfügbar",
+                    JOptionPane.WARNING_MESSAGE);
+                return;
+            }
             
             BookingDialog dialog = new BookingDialog(mainFrame, system, authController, 
                                                      bookingController, fahrzeug);
@@ -475,7 +567,7 @@ public class KundeDashboard extends JPanel {
                             "Buchung erfolgreich storniert.",
                             "Erfolg",
                             JOptionPane.INFORMATION_MESSAGE);
-                        loadBuchungen();
+                        loadData();
                     }
                 }
             } catch (SQLException e) {
@@ -498,25 +590,6 @@ public class KundeDashboard extends JPanel {
         gbc.gridx = 1;
         form.add(field, gbc);
         return row + 1;
-    }
-
-    private JSpinner createDateSpinner(LocalDate initial) {
-        Date date = Date.from(initial.atStartOfDay(ZoneId.systemDefault()).toInstant());
-        SpinnerDateModel model = new SpinnerDateModel(date, null, null, Calendar.DAY_OF_MONTH);
-        JSpinner spinner = new JSpinner(model);
-        spinner.setEditor(new JSpinner.DateEditor(spinner, "yyyy-MM-dd"));
-        ((JSpinner.DefaultEditor) spinner.getEditor()).getTextField().setColumns(9);
-        ChangeListener changeListener = e -> setBuchungButtonState(false);
-        spinner.addChangeListener(changeListener);
-        return spinner;
-    }
-
-    private LocalDate getDate(JSpinner spinner) {
-        Object value = spinner.getValue();
-        if (value instanceof Date date) {
-            return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        }
-        return null;
     }
 
     private void setBuchungButtonState(boolean enabled) {

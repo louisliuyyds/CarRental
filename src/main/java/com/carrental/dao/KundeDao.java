@@ -49,8 +49,7 @@ public class KundeDao implements GenericDao<Kunde> {
             // Generierte ID abrufen
             try (ResultSet rs = stmt.getGeneratedKeys()) {
                 if (rs.next()) {
-                    // Hinweis: Kunde hat keine setId-Methode in unserem Model
-                    // In einer vollständigen Implementierung sollte eine ID-Eigenschaft hinzugefügt werden
+                    kunde.setId(rs.getInt(1));
                 }
             }
             
@@ -215,6 +214,7 @@ public class KundeDao implements GenericDao<Kunde> {
             rs.getString("Email")
         );
         
+        kunde.setId(rs.getInt("ID"));
         kunde.setStrasse(rs.getString("Strasse"));
         kunde.setHausnummer(rs.getString("Hausnummer"));
         kunde.setPlz(rs.getString("PLZ"));

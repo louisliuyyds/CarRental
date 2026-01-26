@@ -63,6 +63,12 @@ public class BookingController {
             return null;
         }
 
+        // 4. Kunden-Konfliktprüfung: Kunde darf nicht parallel mehrere Buchungen haben
+        if (hasKundeOverlap(kunde, startDatum, endDatum)) {
+            System.err.println("Kunde hat bereits eine Buchung im gewählten Zeitraum.");
+            return null;
+        }
+
         try {
             // Mietvertrag erstellen
             Mietvertrag vertrag = new Mietvertrag(kunde, fahrzeug, startDatum, endDatum);
@@ -97,6 +103,9 @@ public class BookingController {
             
         } catch (SQLException e) {
             System.err.println("Fehler beim Erstellen der Buchung: " + e.getMessage());
+            System.err.println("SQL State: " + e.getSQLState());
+            System.err.println("Error Code: " + e.getErrorCode());
+            e.printStackTrace(System.err);
             return null;
         }
     }
@@ -252,6 +261,15 @@ public class BookingController {
             
             // In Datenbank aktualisieren
             system.getMietvertragDao().update(vertrag);
+
+            // Fahrzeugstatus ggf. aktualisieren
+            if (vertrag.getFahrzeug() != null) {
+                Fahrzeug fahrzeug = vertrag.getFahrzeug();
+                if (!hasAktiveVertraegeForFahrzeug(fahrzeug, vertrag.getId())) {
+                    fahrzeug.setZustand(FahrzeugZustand.VERFUEGBAR);
+                    system.getFahrzeugDao().update(fahrzeug);
+                }
+            }
             
             System.out.println("Buchung storniert: " + vertrag.getMietnummer());
             return true;
@@ -374,6 +392,46 @@ public class BookingController {
         }
         
         return true;
+    }
+
+    /**
+     * Prüft, ob der Kunde bereits eine überlappende Buchung hat.
+     */
+    private boolean hasKundeOverlap(Kunde kunde, LocalDate startDatum, LocalDate endDatum) {
+        try {
+            List<Mietvertrag> vertraege = system.getMietvertragDao().findByKunde(kunde.getKundennummer());
+            for (Mietvertrag v : vertraege) {
+                if (isAktiverVertrag(v) &&
+                    hasDateOverlap(startDatum, endDatum, v.getStartDatum(), v.getEndDatum())) {
+                    return true;
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Fehler bei Kunden-Konfliktprüfung: " + e.getMessage());
+            return true; // im Fehlerfall konservativ
+        }
+        return false;
+    }
+
+    /**
+     * Prüft, ob für das Fahrzeug noch aktive Verträge existieren (außer dem angegebenen Vertrag).
+     */
+    private boolean hasAktiveVertraegeForFahrzeug(Fahrzeug fahrzeug, int excludeVertragId) {
+        try {
+            List<Mietvertrag> allVertraege = system.getMietvertragDao().findAll();
+            for (Mietvertrag v : allVertraege) {
+                if (v.getId() == excludeVertragId) {
+                    continue;
+                }
+                if (v.getFahrzeug() != null && v.getFahrzeug().getId() == fahrzeug.getId() && isAktiverVertrag(v)) {
+                    return true;
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Fehler bei Fahrzeug-Vertragsprüfung: " + e.getMessage());
+            return true; // konservativ
+        }
+        return false;
     }
 
     /**

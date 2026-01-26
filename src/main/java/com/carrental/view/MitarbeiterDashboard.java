@@ -8,6 +8,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,6 +27,7 @@ public class MitarbeiterDashboard extends JPanel {
     private DefaultTableModel vertragTableModel;
     private JTable vertragTable;
     private FahrzeugPanel fahrzeugPanel;
+    private final com.carrental.controller.BookingController bookingController;
     
     /**
      * Konstruktor für das Mitarbeiter-Dashboard.
@@ -33,6 +35,7 @@ public class MitarbeiterDashboard extends JPanel {
     public MitarbeiterDashboard(CarRentalSystem system, AuthController authController) {
         this.system = system;
         this.authController = authController;
+        this.bookingController = new com.carrental.controller.BookingController(system);
         
         initializeUI();
         loadData();
@@ -56,11 +59,12 @@ public class MitarbeiterDashboard extends JPanel {
             "Mitarbeiter-Bereich";
         
         JLabel headerLabel = new JLabel(willkommensText);
-        headerLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        headerLabel.setFont(new Font("Arial", Font.BOLD, 40));
         headerLabel.setForeground(Color.WHITE);
         headerPanel.add(headerLabel);
         
         JButton logoutButton = new JButton("Abmelden");
+        logoutButton.setFont(new Font("Arial", Font.BOLD, 16));
         logoutButton.addActionListener(e -> {
             authController.logout();
             JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(this);
@@ -75,6 +79,7 @@ public class MitarbeiterDashboard extends JPanel {
         
         // Tabbed Pane
         tabbedPane = new JTabbedPane();
+        tabbedPane.setFont(new Font("Arial", Font.BOLD, 16));
         
         // Tab 1: Fahrzeugverwaltung
         fahrzeugPanel = new FahrzeugPanel(system);
@@ -155,16 +160,24 @@ public class MitarbeiterDashboard extends JPanel {
         JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT));
         
         JButton refreshButton = new JButton("Aktualisieren");
+        refreshButton.setFont(new Font("Arial", Font.BOLD, 16));
         refreshButton.addActionListener(e -> loadVertraege());
         toolbar.add(refreshButton);
         
         JButton detailsButton = new JButton("Details anzeigen");
+        detailsButton.setFont(new Font("Arial", Font.BOLD, 16));
         detailsButton.addActionListener(e -> showVertragDetails());
         toolbar.add(detailsButton);
         
         JButton filterButton = new JButton("Filter");
+        filterButton.setFont(new Font("Arial", Font.BOLD, 16));
         filterButton.addActionListener(e -> filterVertraege());
         toolbar.add(filterButton);
+
+        JButton statusButton = new JButton("Status ändern");
+        statusButton.setFont(new Font("Arial", Font.BOLD, 16));
+        statusButton.addActionListener(e -> changeVertragStatus());
+        toolbar.add(statusButton);
         
         panel.add(toolbar, BorderLayout.NORTH);
         
@@ -181,6 +194,9 @@ public class MitarbeiterDashboard extends JPanel {
         vertragTable = new JTable(vertragTableModel);
         vertragTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         vertragTable.getTableHeader().setReorderingAllowed(false);
+        vertragTable.setRowHeight(35);
+        vertragTable.setFont(new Font("Arial", Font.PLAIN, 14));
+        vertragTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 14));
         
         JScrollPane scrollPane = new JScrollPane(vertragTable);
         panel.add(scrollPane, BorderLayout.CENTER);
@@ -208,6 +224,7 @@ public class MitarbeiterDashboard extends JPanel {
         
         // Aktualisieren-Button
         JButton refreshButton = new JButton("Statistiken aktualisieren");
+        refreshButton.setFont(new Font("Arial", Font.BOLD, 16));
         refreshButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         refreshButton.addActionListener(e -> loadStatistiken());
         panel.add(refreshButton);
@@ -221,17 +238,17 @@ public class MitarbeiterDashboard extends JPanel {
     private JPanel createStatistikKarte(String titel, String wert, Color farbe) {
         JPanel karte = new JPanel();
         karte.setLayout(new BorderLayout());
-        karte.setBorder(BorderFactory.createLineBorder(farbe, 2));
+        karte.setBorder(BorderFactory.createLineBorder(farbe, 3));
         karte.setBackground(Color.WHITE);
-        karte.setMaximumSize(new Dimension(Integer.MAX_VALUE, 80));
+        karte.setMaximumSize(new Dimension(Integer.MAX_VALUE, 140));
         
         JLabel titelLabel = new JLabel(titel);
-        titelLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        titelLabel.setFont(new Font("Arial", Font.PLAIN, 28));
         titelLabel.setBorder(BorderFactory.createEmptyBorder(10, 15, 5, 15));
         karte.add(titelLabel, BorderLayout.NORTH);
         
         JLabel wertLabel = new JLabel(wert);
-        wertLabel.setFont(new Font("Arial", Font.BOLD, 28));
+        wertLabel.setFont(new Font("Arial", Font.BOLD, 56));
         wertLabel.setForeground(farbe);
         wertLabel.setBorder(BorderFactory.createEmptyBorder(5, 15, 10, 15));
         karte.add(wertLabel, BorderLayout.CENTER);
@@ -521,6 +538,173 @@ public class MitarbeiterDashboard extends JPanel {
     }
 
     /**
+     * Ändert den Status des ausgewählten Mietvertrags.
+     */
+    private void changeVertragStatus() {
+        int selectedRow = vertragTable.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this,
+                "Bitte wählen Sie einen Vertrag aus.",
+                "Keine Auswahl",
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        String mietnummer = (String) vertragTableModel.getValueAt(selectedRow, 0);
+        try {
+            Optional<Mietvertrag> vertragOpt = system.getMietvertragDao().findByMietnummer(mietnummer);
+            if (vertragOpt.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                    "Vertrag nicht gefunden.",
+                    "Fehler",
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            Mietvertrag vertrag = vertragOpt.get();
+            if (vertrag.getFahrzeug() == null) {
+                JOptionPane.showMessageDialog(this,
+                    "Dem Vertrag ist kein Fahrzeug zugeordnet.",
+                    "Fehler",
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            JPanel panel = new JPanel(new GridBagLayout());
+            GridBagConstraints gbc = new GridBagConstraints();
+            gbc.insets = new Insets(6, 6, 6, 6);
+            gbc.gridx = 0;
+            gbc.gridy = 0;
+            gbc.anchor = GridBagConstraints.WEST;
+            panel.add(new JLabel("Vertragsstatus:"), gbc);
+
+            gbc.gridx = 1;
+            VertragsStatus[] statusOptions = VertragsStatus.values();
+            JComboBox<VertragsStatus> statusCombo = new JComboBox<>(statusOptions);
+            statusCombo.setSelectedItem(vertrag.getStatus());
+            panel.add(statusCombo, gbc);
+
+            gbc.gridx = 0;
+            gbc.gridy = 1;
+            panel.add(new JLabel("Fahrzeugstatus:"), gbc);
+
+            gbc.gridx = 1;
+            JComboBox<FahrzeugZustand> zustandCombo = new JComboBox<>(FahrzeugZustand.values());
+            zustandCombo.setSelectedItem(vertrag.getFahrzeug().getZustand());
+            panel.add(zustandCombo, gbc);
+
+            int result = JOptionPane.showConfirmDialog(this,
+                panel,
+                "Status ändern",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE);
+
+            if (result != JOptionPane.OK_OPTION) {
+                return;
+            }
+
+            VertragsStatus selectedStatus = (VertragsStatus) statusCombo.getSelectedItem();
+            FahrzeugZustand selectedZustand = (FahrzeugZustand) zustandCombo.getSelectedItem();
+            if (selectedStatus == null || selectedZustand == null) {
+                return;
+            }
+
+            if (isAktiverVertragStatus(selectedStatus)) {
+                if (hasVertragskonflikt(vertrag)) {
+                    JOptionPane.showMessageDialog(this,
+                        "Der Vertrag überschneidet sich mit einem anderen aktiven Vertrag für dieses Fahrzeug.",
+                        "Konflikt",
+                        JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                // Aktiver Vertrag => Fahrzeug muss vermietet sein
+                selectedZustand = FahrzeugZustand.VERMIETET;
+            } else {
+                // Inaktive Verträge: Fahrzeug nur dann verfügbar setzen, wenn keine aktiven Verträge existieren
+                if (!hasAndereAktiveVertraege(vertrag)) {
+                    if (selectedZustand != FahrzeugZustand.WARTUNG) {
+                        selectedZustand = FahrzeugZustand.VERFUEGBAR;
+                    }
+                } else {
+                    selectedZustand = FahrzeugZustand.VERMIETET;
+                }
+            }
+
+            vertrag.setStatus(selectedStatus);
+            system.getMietvertragDao().update(vertrag);
+
+            vertrag.getFahrzeug().setZustand(selectedZustand);
+            system.getFahrzeugDao().update(vertrag.getFahrzeug());
+
+            // Optional: Benachrichtigung für Kunden
+            if (vertrag.getKunde() != null) {
+                system.addNotification(vertrag.getKunde().getId(),
+                    "Status Ihres Mietvertrags " + vertrag.getMietnummer() + " wurde geändert zu: " + selectedStatus);
+            }
+
+            loadVertraege();
+            if (fahrzeugPanel != null) {
+                fahrzeugPanel.refreshFahrzeuge();
+            }
+            JOptionPane.showMessageDialog(this,
+                "Status erfolgreich geändert.",
+                "Erfolg",
+                JOptionPane.INFORMATION_MESSAGE);
+
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this,
+                "Fehler beim Aktualisieren: " + e.getMessage(),
+                "Fehler",
+                JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private boolean isAktiverVertragStatus(VertragsStatus status) {
+        return status == VertragsStatus.BESTAETIGT || status == VertragsStatus.LAUFEND;
+    }
+
+    private boolean hasVertragskonflikt(Mietvertrag zielVertrag) throws SQLException {
+        List<Mietvertrag> vertraege = system.getMietvertragDao().findAll();
+        for (Mietvertrag v : vertraege) {
+            if (v.getId() == zielVertrag.getId()) {
+                continue;
+            }
+            if (v.getFahrzeug() == null || zielVertrag.getFahrzeug() == null) {
+                continue;
+            }
+            if (v.getFahrzeug().getId() == zielVertrag.getFahrzeug().getId() &&
+                isAktiverVertragStatus(v.getStatus())) {
+                if (hasDateOverlap(zielVertrag.getStartDatum(), zielVertrag.getEndDatum(),
+                                   v.getStartDatum(), v.getEndDatum())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private boolean hasAndereAktiveVertraege(Mietvertrag zielVertrag) throws SQLException {
+        List<Mietvertrag> vertraege = system.getMietvertragDao().findAll();
+        for (Mietvertrag v : vertraege) {
+            if (v.getId() == zielVertrag.getId()) {
+                continue;
+            }
+            if (v.getFahrzeug() == null || zielVertrag.getFahrzeug() == null) {
+                continue;
+            }
+            if (v.getFahrzeug().getId() == zielVertrag.getFahrzeug().getId() &&
+                isAktiverVertragStatus(v.getStatus())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean hasDateOverlap(LocalDate start1, LocalDate end1, LocalDate start2, LocalDate end2) {
+        return !start1.isAfter(end2) && !end1.isBefore(start2);
+    }
+
+    /**
      * Erstellt ein Fahrzeug-Icon.
      */
     private Icon createFahrzeugIcon() {
@@ -535,9 +719,62 @@ public class MitarbeiterDashboard extends JPanel {
     }
 
     /**
-     * Erstellt ein Statistik-Icon.
+     * Statistik-Icon.
      */
     private Icon createStatistikIcon() {
-        return UIManager.getIcon("FileView.hardDriveIcon");
+        return UIManager.getIcon("FileView.floppyDriveIcon");
+    }
+
+    /**
+     * Creates a dialog to filter contracts by date range using calendar date choosers.
+     */
+    public void showDateFilterDialog() {
+        JDialog dialog = new JDialog((JFrame) SwingUtilities.getWindowAncestor(this),
+            "Verträge nach Zeitraum filtern", true);
+        dialog.setLayout(new BorderLayout(10, 10));
+
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+
+        // Start date
+        JLabel startLabel = new JLabel("Startdatum:");
+        startLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        contentPanel.add(startLabel);
+        CalendarDateChooser startChooser = new CalendarDateChooser(
+            LocalDate.now().minusDays(30), null);
+        contentPanel.add(startChooser);
+        contentPanel.add(Box.createVerticalStrut(20));
+
+        // End date
+        JLabel endLabel = new JLabel("Enddatum:");
+        endLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        contentPanel.add(endLabel);
+        CalendarDateChooser endChooser = new CalendarDateChooser(
+            LocalDate.now().plusDays(30), null);
+        contentPanel.add(endChooser);
+        contentPanel.add(Box.createVerticalStrut(20));
+
+        dialog.add(contentPanel, BorderLayout.CENTER);
+
+        // Buttons
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        JButton applyButton = new JButton("Anwenden");
+        applyButton.setFont(new Font("Arial", Font.BOLD, 14));
+        applyButton.addActionListener(e -> {
+            // Filter logic can be implemented here
+            dialog.dispose();
+        });
+        buttonPanel.add(applyButton);
+
+        JButton cancelButton = new JButton("Abbrechen");
+        cancelButton.setFont(new Font("Arial", Font.BOLD, 14));
+        cancelButton.addActionListener(e -> dialog.dispose());
+        buttonPanel.add(cancelButton);
+
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+        dialog.setSize(600, 300);
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
     }
 }
