@@ -94,8 +94,13 @@ public class BookingController {
             fahrzeug.setZustand(FahrzeugZustand.VERMIETET);
             system.getFahrzeugDao().updateStatusAndKilometerstand(fahrzeug);
 
-            // Vertragsstatus aktualisieren
-            vertrag.setStatus(VertragsStatus.BESTAETIGT);
+            // Vertragsstatus aktualisieren - berücksichtigt das Startdatum
+            LocalDate heute = LocalDate.now();
+            if (!startDatum.isAfter(heute)) {
+                vertrag.setStatus(VertragsStatus.LAUFEND);
+            } else {
+                vertrag.setStatus(VertragsStatus.BESTAETIGT);
+            }
             system.getMietvertragDao().update(vertrag);
             
             System.out.println("Buchung erfolgreich erstellt: " + vertrag.getMietnummer());

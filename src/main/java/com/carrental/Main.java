@@ -2,6 +2,7 @@ package com.carrental;
 
 import com.carrental.controller.AuthController;
 import com.carrental.controller.CarRentalSystem;
+import com.carrental.controller.ContractStatusUpdater;
 import com.carrental.view.MainFrame;
 
 import javax.swing.*;
@@ -11,6 +12,8 @@ import javax.swing.*;
  * Startet die GUI-Anwendung.
  */
 public class Main {
+
+    private static ContractStatusUpdater statusUpdater;
 
     /**
      * Main-Methode - Einstiegspunkt der Anwendung.
@@ -40,6 +43,27 @@ public class Main {
                 
                 // Singleton-System initialisieren
                 CarRentalSystem system = CarRentalSystem.getInstance();
+                
+                // Automatische Statusaktualisierung initialisieren
+                statusUpdater = new ContractStatusUpdater(system);
+                system.setStatusUpdater(statusUpdater);
+                
+                // Beim Start einmaligen Check durchführen
+                int updated = statusUpdater.updateAllStatuses();
+                if (updated > 0) {
+                    System.out.println("✓ " + updated + " Verträge beim Start aktualisiert.");
+                }
+                
+                // Regelmäßige Updates starten (alle 60 Minuten)
+                statusUpdater.startUpdater(60);
+                
+                // Shutdown-Handler registrieren
+                Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                    if (statusUpdater != null) {
+                        statusUpdater.stopUpdater();
+                        System.out.println("✓ Automatische Statusaktualisierung gestoppt.");
+                    }
+                }));
                 
                 // AuthController erstellen
                 AuthController authController = new AuthController(system);

@@ -32,6 +32,9 @@ public class CarRentalSystem {
     private final ZusatzoptionDao zusatzoptionDao;
     private final MitarbeiterDao mitarbeiterDao;
     
+    // Automatische Statusaktualisierung
+    private ContractStatusUpdater statusUpdater;
+    
     // In-Memory-Listen für schnellen Zugriff (optional, je nach Implementierung)
     private List<Kunde> kundenListe;
     private List<Fahrzeug> fahrzeugListe;
@@ -211,6 +214,37 @@ public class CarRentalSystem {
 
     public MitarbeiterDao getMitarbeiterDao() {
         return mitarbeiterDao;
+    }
+
+    /**
+     * Gibt den ContractStatusUpdater zurück (falls initialisiert).
+     * 
+     * @return Der Status-Updater oder null
+     */
+    public ContractStatusUpdater getStatusUpdater() {
+        return statusUpdater;
+    }
+
+    /**
+     * Setzt den ContractStatusUpdater.
+     * 
+     * @param updater Der Status-Updater
+     */
+    public void setStatusUpdater(ContractStatusUpdater updater) {
+        this.statusUpdater = updater;
+    }
+
+    /**
+     * Führt eine manuelle Statusaktualisierung durch.
+     * Nützlich zum Testen oder bei Bedarf.
+     * 
+     * @return Anzahl der aktualisierten Verträge
+     */
+    public int updateContractStatuses() {
+        if (statusUpdater != null) {
+            return statusUpdater.updateAllStatuses();
+        }
+        return 0;
     }
 
     // ----- Simple in-memory notification API -----
