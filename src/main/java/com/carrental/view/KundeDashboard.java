@@ -198,15 +198,22 @@ public class KundeDashboard extends JPanel {
         panel.add(scrollPane, BorderLayout.CENTER);
         
         // Button-Panel
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 15));
+        
+        Font grosserButtonFont = new Font("Arial", Font.BOLD, 18);
+        Dimension grosserButtonSize = new Dimension(180, 50);
         
         JButton refreshButton = new JButton("Aktualisieren");
+        refreshButton.setFont(grosserButtonFont);
+        refreshButton.setPreferredSize(grosserButtonSize);
         refreshButton.addActionListener(e -> loadBuchungen());
         buttonPanel.add(refreshButton);
         
         JButton stornButton = new JButton("Buchung stornieren");
-        stornButton.setBackground(new Color(255, 99, 71)); // Tomato
-        stornButton.setForeground(Color.WHITE);
+        stornButton.setFont(grosserButtonFont);
+        stornButton.setPreferredSize(grosserButtonSize);
+        stornButton.setBackground(new Color(255, 99, 71));
+        stornButton.setForeground(Color.BLACK);
         stornButton.addActionListener(e -> storniereBuchung());
         buttonPanel.add(stornButton);
         

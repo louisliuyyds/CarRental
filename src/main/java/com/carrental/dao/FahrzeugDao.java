@@ -333,6 +333,29 @@ public class FahrzeugDao implements GenericDao<Fahrzeug> {
     }
 
     /**
+     * Aktualisiert nur den Status und Kilometerstand eines Fahrzeugs.
+     * Verwendet eine spezifische UPDATE-Anweisung, die keine Fahrzeugtyp-ID enthält.
+     * 
+     * @param fahrzeug Das zu aktualisierende Fahrzeug
+     * @return true wenn erfolgreich aktualisiert
+     * @throws SQLException Bei Datenbankfehlern
+     */
+    public boolean updateStatusAndKilometerstand(Fahrzeug fahrzeug) throws SQLException {
+        String sql = "UPDATE Fahrzeug SET AktuellerKilometerstand = ?, Zustand = ?, TuevDatum = ? WHERE ID = ?";
+        
+        try (Connection conn = DatabaseConnection.create(config);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             
+            stmt.setInt(1, fahrzeug.getAktuellerKilometerstand());
+            stmt.setString(2, fahrzeug.getZustand().name());
+            stmt.setDate(3, fahrzeug.getTuevDatum() != null ? Date.valueOf(fahrzeug.getTuevDatum()) : null);
+            stmt.setInt(4, fahrzeug.getId());
+            
+            return stmt.executeUpdate() > 0;
+        }
+    }
+
+    /**
      * Speichert einen neuen Fahrzeugtyp (Alias für createFahrzeugtyp).
      * 
      * @param typ Der zu speichernde Fahrzeugtyp
@@ -355,8 +378,37 @@ public class FahrzeugDao implements GenericDao<Fahrzeug> {
         
         try (Connection conn = DatabaseConnection.create(config);
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+             
             stmt.setLong(1, id);
+            return stmt.executeUpdate() > 0;
+        }
+    }
+
+    /**
+     * Aktualisiert einen Fahrzeugtyp.
+     * 
+     * @param typ Der zu aktualisierende Fahrzeugtyp
+     * @return true wenn erfolgreich aktualisiert
+     * @throws SQLException Bei Datenbankfehlern
+     */
+    public boolean updateFahrzeugtyp(Fahrzeugtyp typ) throws SQLException {
+        String sql = "UPDATE Fahrzeugtyp SET Hersteller = ?, ModellBezeichnung = ?, Kategorie = ?, " +
+                     "StandardTagesPreis = ?, Sitzplaetze = ?, Antriebsart = ?, ReichweiteKm = ?, " +
+                     "Beschreibung = ? WHERE ID = ?";
+        
+        try (Connection conn = DatabaseConnection.create(config);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+             
+            stmt.setString(1, typ.getHersteller());
+            stmt.setString(2, typ.getModellBezeichnung());
+            stmt.setString(3, typ.getKategorie());
+            stmt.setDouble(4, typ.getStandardTagesPreis());
+            stmt.setInt(5, typ.getSitzplaetze());
+            stmt.setString(6, typ.getAntriebsart() != null ? typ.getAntriebsart().name() : null);
+            stmt.setInt(7, typ.getReichweiteKm());
+            stmt.setString(8, typ.getBeschreibung());
+            stmt.setInt(9, typ.getId());
+            
             return stmt.executeUpdate() > 0;
         }
     }

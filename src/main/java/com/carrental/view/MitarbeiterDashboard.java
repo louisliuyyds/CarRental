@@ -457,52 +457,100 @@ public class MitarbeiterDashboard extends JPanel {
         }
     }
 
+    private static final Font GROSSE_SCHRIFT = new Font("Arial", Font.PLAIN, 18);
+    private static final Font GROSSE_LABEL_SCHRIFT = new Font("Arial", Font.BOLD, 20);
+    
     /**
      * Filtert Verträge nach Status.
      */
     private void filterVertraege() {
-        String[] options = {"Alle", "ANGELEGT", "BESTAETIGT", "LAUFEND", "ABGESCHLOSSEN", "STORNIERT"};
-        String selected = (String) JOptionPane.showInputDialog(this,
-            "Status auswählen:",
-            "Filter",
-            JOptionPane.QUESTION_MESSAGE,
-            null,
-            options,
-            options[0]);
+        JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Verträge filtern", true);
+        dialog.setLayout(new BorderLayout(20, 20));
         
-        if (selected != null) {
-            if (selected.equals("Alle")) {
-                loadVertraege();
-            } else {
-                try {
-                    VertragsStatus status = VertragsStatus.valueOf(selected);
-                    vertragTableModel.setRowCount(0);
-                    
-                    List<Mietvertrag> vertraege = system.getMietvertragDao().findAll();
-                    for (Mietvertrag v : vertraege) {
-                        if (v.getStatus() == status) {
-                            String kundenname = v.getKunde() != null ? 
-                                v.getKunde().getVorname() + " " + v.getKunde().getNachname() : "-";
-                            String fahrzeuginfo = v.getFahrzeug() != null ? v.getFahrzeug().getKennzeichen() : "-";
-                            
-                            Object[] row = {
-                                v.getMietnummer(),
-                                kundenname,
-                                fahrzeuginfo,
-                                v.getStartDatum(),
-                                v.getEndDatum(),
-                                String.format("%.2f €", v.getGesamtPreis()),
-                                v.getStatus()
-                            };
-                            vertragTableModel.addRow(row);
-                        }
+        JPanel contentPanel = new JPanel(new BorderLayout(20, 20));
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        
+        JLabel statusLabel = new JLabel("Status auswählen:");
+        statusLabel.setFont(GROSSE_LABEL_SCHRIFT);
+        contentPanel.add(statusLabel, BorderLayout.NORTH);
+        
+        String[] options = {"Alle", "ANGELEGT", "BESTAETIGT", "LAUFEND", "ABGESCHLOSSEN", "STORNIERT"};
+        JList<String> statusList = new JList<>(options);
+        statusList.setFont(GROSSE_SCHRIFT);
+        statusList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        statusList.setSelectedIndex(0);
+        statusList.setFixedCellHeight(35);
+        
+        JScrollPane listScroll = new JScrollPane(statusList);
+        listScroll.setPreferredSize(new Dimension(250, 200));
+        contentPanel.add(listScroll, BorderLayout.CENTER);
+        
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        buttonPanel.setBackground(Color.WHITE);
+        
+        Font buttonFont = new Font("Arial", Font.BOLD, 18);
+        Dimension buttonSize = new Dimension(140, 45);
+        
+        JButton okButton = new JButton("OK");
+        okButton.setFont(buttonFont);
+        okButton.setPreferredSize(buttonSize);
+        okButton.addActionListener(e -> {
+            String selected = statusList.getSelectedValue();
+            dialog.dispose();
+            applyFilter(selected);
+        });
+        buttonPanel.add(okButton);
+        
+        JButton cancelButton = new JButton("Abbrechen");
+        cancelButton.setFont(buttonFont);
+        cancelButton.setPreferredSize(buttonSize);
+        cancelButton.addActionListener(e -> dialog.dispose());
+        buttonPanel.add(cancelButton);
+        
+        contentPanel.add(buttonPanel, BorderLayout.SOUTH);
+        
+        dialog.add(contentPanel, BorderLayout.CENTER);
+        
+        dialog.pack();
+        dialog.setSize(400, 400);
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+    }
+    
+    private void applyFilter(String selected) {
+        if (selected == null) return;
+        
+        if (selected.equals("Alle")) {
+            loadVertraege();
+        } else {
+            try {
+                VertragsStatus status = VertragsStatus.valueOf(selected);
+                vertragTableModel.setRowCount(0);
+                
+                List<Mietvertrag> vertraege = system.getMietvertragDao().findAll();
+                for (Mietvertrag v : vertraege) {
+                    if (v.getStatus() == status) {
+                        String kundenname = v.getKunde() != null ? 
+                            v.getKunde().getVorname() + " " + v.getKunde().getNachname() : "-";
+                        String fahrzeuginfo = v.getFahrzeug() != null ? v.getFahrzeug().getKennzeichen() : "-";
+                        
+                        Object[] row = {
+                            v.getMietnummer(),
+                            kundenname,
+                            fahrzeuginfo,
+                            v.getStartDatum(),
+                            v.getEndDatum(),
+                            String.format("%.2f €", v.getGesamtPreis()),
+                            v.getStatus()
+                        };
+                        vertragTableModel.addRow(row);
                     }
-                } catch (SQLException e) {
-                    JOptionPane.showMessageDialog(this,
-                        "Fehler beim Filtern: " + e.getMessage(),
-                        "Fehler",
-                        JOptionPane.ERROR_MESSAGE);
                 }
+            } catch (SQLException e) {
+                JOptionPane.showMessageDialog(this,
+                    "Fehler beim Filtern: " + e.getMessage(),
+                    "Fehler",
+                    JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -604,7 +652,7 @@ public class MitarbeiterDashboard extends JPanel {
             system.getMietvertragDao().update(vertrag);
 
             vertrag.getFahrzeug().setZustand(selectedZustand);
-            system.getFahrzeugDao().update(vertrag.getFahrzeug());
+            system.getFahrzeugDao().updateStatusAndKilometerstand(vertrag.getFahrzeug());
 
             // Optional: Benachrichtigung für Kunden
             if (vertrag.getKunde() != null) {

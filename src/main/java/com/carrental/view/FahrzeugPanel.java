@@ -7,6 +7,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.SQLException;
+import java.util.Locale;
 import java.util.List;
 import java.util.Optional;
 
@@ -44,10 +45,19 @@ public class FahrzeugPanel extends JPanel {
     /**
      * Initialisiert die Benutzeroberfläche.
      */
+    private static final Font GROSSE_TAB_SCHRIFT = new Font("Arial", Font.BOLD, 18);
+    private static final Font GROSSE_BUTTON_SCHRIFT = new Font("Arial", Font.BOLD, 16);
+    private static final Font GROSSE_DIALOG_SCHRIFT = new Font("Arial", Font.PLAIN, 16);
+    private static final Font GROSSE_LABEL_SCHRIFT = new Font("Arial", Font.BOLD, 16);
+    private static final Font GROSSE_FIELD_SCHRIFT = new Font("Arial", Font.PLAIN, 16);
+    private static final Dimension GROSSE_BUTTON_GROESSE = new Dimension(160, 45);
+    
     private void initializeUI() {
         setLayout(new BorderLayout());
         
         tabbedPane = new JTabbedPane();
+        tabbedPane.setFont(GROSSE_TAB_SCHRIFT);
+        tabbedPane.setTabLayoutPolicy(JTabbedPane.WRAP_TAB_LAYOUT);
         
         // Tab 1: Fahrzeuge
         JPanel fahrzeugePanel = createFahrzeugePanel();
@@ -68,32 +78,37 @@ public class FahrzeugPanel extends JPanel {
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
         // Toolbar
-        JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         
         JButton refreshButton = new JButton("Aktualisieren");
-        refreshButton.setFont(new Font("Arial", Font.BOLD, 16));
+        refreshButton.setFont(GROSSE_BUTTON_SCHRIFT);
+        refreshButton.setPreferredSize(GROSSE_BUTTON_GROESSE);
         refreshButton.addActionListener(e -> loadFahrzeuge());
         toolbar.add(refreshButton);
         
         JButton addButton = new JButton("Hinzufügen");
-        addButton.setFont(new Font("Arial", Font.BOLD, 16));
+        addButton.setFont(GROSSE_BUTTON_SCHRIFT);
+        addButton.setPreferredSize(GROSSE_BUTTON_GROESSE);
         addButton.setBackground(new Color(70, 130, 180));
-        addButton.setForeground(Color.WHITE);
+        addButton.setForeground(Color.BLACK);
         addButton.addActionListener(e -> addFahrzeug());
         toolbar.add(addButton);
         
         editFahrzeugButton = new JButton("Bearbeiten");
-        editFahrzeugButton.setFont(new Font("Arial", Font.BOLD, 16));
+        editFahrzeugButton.setFont(GROSSE_BUTTON_SCHRIFT);
+        editFahrzeugButton.setPreferredSize(GROSSE_BUTTON_GROESSE);
         editFahrzeugButton.addActionListener(e -> editFahrzeug());
         toolbar.add(editFahrzeugButton);
         
         deleteFahrzeugButton = new JButton("Löschen");
-        deleteFahrzeugButton.setFont(new Font("Arial", Font.BOLD, 16));
+        deleteFahrzeugButton.setFont(GROSSE_BUTTON_SCHRIFT);
+        deleteFahrzeugButton.setPreferredSize(GROSSE_BUTTON_GROESSE);
         deleteFahrzeugButton.addActionListener(e -> deleteFahrzeug());
         toolbar.add(deleteFahrzeugButton);
         
         zustandFahrzeugButton = new JButton("Zustand ändern");
-        zustandFahrzeugButton.setFont(new Font("Arial", Font.BOLD, 16));
+        zustandFahrzeugButton.setFont(GROSSE_BUTTON_SCHRIFT);
+        zustandFahrzeugButton.setPreferredSize(GROSSE_BUTTON_GROESSE);
         zustandFahrzeugButton.addActionListener(e -> changeZustand());
         toolbar.add(zustandFahrzeugButton);
         
@@ -112,9 +127,9 @@ public class FahrzeugPanel extends JPanel {
         fahrzeugTable = new JTable(fahrzeugTableModel);
         fahrzeugTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         fahrzeugTable.getTableHeader().setReorderingAllowed(false);
-        fahrzeugTable.setRowHeight(35);
-        fahrzeugTable.setFont(new Font("Arial", Font.PLAIN, 14));
-        fahrzeugTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 14));
+        fahrzeugTable.setRowHeight(40);
+        fahrzeugTable.setFont(GROSSE_FIELD_SCHRIFT);
+        fahrzeugTable.getTableHeader().setFont(GROSSE_LABEL_SCHRIFT);
         fahrzeugTable.getSelectionModel().addListSelectionListener(e -> updateFahrzeugButtonState());
 
         updateFahrzeugButtonState();
@@ -150,27 +165,31 @@ public class FahrzeugPanel extends JPanel {
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         
         // Toolbar
-        JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
         
         JButton refreshButton = new JButton("Aktualisieren");
-        refreshButton.setFont(new Font("Arial", Font.BOLD, 16));
+        refreshButton.setFont(GROSSE_BUTTON_SCHRIFT);
+        refreshButton.setPreferredSize(GROSSE_BUTTON_GROESSE);
         refreshButton.addActionListener(e -> loadFahrzeugtypen());
         toolbar.add(refreshButton);
         
         JButton addButton = new JButton("Hinzufügen");
-        addButton.setFont(new Font("Arial", Font.BOLD, 16));
+        addButton.setFont(GROSSE_BUTTON_SCHRIFT);
+        addButton.setPreferredSize(GROSSE_BUTTON_GROESSE);
         addButton.setBackground(new Color(70, 130, 180));
-        addButton.setForeground(Color.WHITE);
+        addButton.setForeground(Color.BLACK);
         addButton.addActionListener(e -> addFahrzeugtyp());
         toolbar.add(addButton);
         
         JButton editButton = new JButton("Bearbeiten");
-        editButton.setFont(new Font("Arial", Font.BOLD, 16));
+        editButton.setFont(GROSSE_BUTTON_SCHRIFT);
+        editButton.setPreferredSize(GROSSE_BUTTON_GROESSE);
         editButton.addActionListener(e -> editFahrzeugtyp());
         toolbar.add(editButton);
         
         JButton deleteButton = new JButton("Löschen");
-        deleteButton.setFont(new Font("Arial", Font.BOLD, 16));
+        deleteButton.setFont(GROSSE_BUTTON_SCHRIFT);
+        deleteButton.setPreferredSize(GROSSE_BUTTON_GROESSE);
         deleteButton.addActionListener(e -> deleteFahrzeugtyp());
         toolbar.add(deleteButton);
         
@@ -189,9 +208,9 @@ public class FahrzeugPanel extends JPanel {
         fahrzeugtypTable = new JTable(fahrzeugtypTableModel);
         fahrzeugtypTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         fahrzeugtypTable.getTableHeader().setReorderingAllowed(false);
-        fahrzeugtypTable.setRowHeight(35);
-        fahrzeugtypTable.setFont(new Font("Arial", Font.PLAIN, 14));
-        fahrzeugtypTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 14));
+        fahrzeugtypTable.setRowHeight(40);
+        fahrzeugtypTable.setFont(GROSSE_FIELD_SCHRIFT);
+        fahrzeugtypTable.getTableHeader().setFont(GROSSE_LABEL_SCHRIFT);
         
         JScrollPane scrollPane = new JScrollPane(fahrzeugtypTable);
         panel.add(scrollPane, BorderLayout.CENTER);
@@ -295,25 +314,31 @@ public class FahrzeugPanel extends JPanel {
                                      "Fahrzeug hinzufügen", true);
         dialog.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 10, 5, 10);
+        gbc.insets = new Insets(12, 15, 12, 15);
         gbc.fill = GridBagConstraints.HORIZONTAL;
         
         // Kennzeichen
         gbc.gridx = 0;
         gbc.gridy = 0;
-        dialog.add(new JLabel("Kennzeichen:"), gbc);
+        JLabel kennzeichenLabel = new JLabel("Kennzeichen:");
+        kennzeichenLabel.setFont(GROSSE_LABEL_SCHRIFT);
+        dialog.add(kennzeichenLabel, gbc);
         
         gbc.gridx = 1;
-        JTextField kennzeichenField = new JTextField(15);
+        JTextField kennzeichenField = new JTextField(20);
+        kennzeichenField.setFont(GROSSE_FIELD_SCHRIFT);
         dialog.add(kennzeichenField, gbc);
         
         // Fahrzeugtyp
         gbc.gridx = 0;
         gbc.gridy = 1;
-        dialog.add(new JLabel("Fahrzeugtyp:"), gbc);
+        JLabel typLabel = new JLabel("Fahrzeugtyp:");
+        typLabel.setFont(GROSSE_LABEL_SCHRIFT);
+        dialog.add(typLabel, gbc);
         
         gbc.gridx = 1;
         JComboBox<Fahrzeugtyp> typCombo = new JComboBox<>();
+        typCombo.setFont(GROSSE_FIELD_SCHRIFT);
         try {
             List<Fahrzeugtyp> typen = system.getFahrzeugDao().findAllFahrzeugtypen();
             for (Fahrzeugtyp t : typen) {
@@ -342,19 +367,24 @@ public class FahrzeugPanel extends JPanel {
         // Zustand
         gbc.gridx = 0;
         gbc.gridy = 2;
-        dialog.add(new JLabel("Zustand:"), gbc);
+        JLabel zustandLabel = new JLabel("Zustand:");
+        zustandLabel.setFont(GROSSE_LABEL_SCHRIFT);
+        dialog.add(zustandLabel, gbc);
         
         gbc.gridx = 1;
         JComboBox<FahrzeugZustand> zustandCombo = new JComboBox<>(FahrzeugZustand.values());
+        zustandCombo.setFont(GROSSE_FIELD_SCHRIFT);
         dialog.add(zustandCombo, gbc);
         
         // Buttons
         gbc.gridx = 0;
         gbc.gridy = 3;
         gbc.gridwidth = 2;
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
         
         JButton saveButton = new JButton("Speichern");
+        saveButton.setFont(GROSSE_BUTTON_SCHRIFT);
+        saveButton.setPreferredSize(GROSSE_BUTTON_GROESSE);
         saveButton.addActionListener(e -> {
             String kennzeichen = kennzeichenField.getText().trim();
             Fahrzeugtyp typ = (Fahrzeugtyp) typCombo.getSelectedItem();
@@ -397,12 +427,15 @@ public class FahrzeugPanel extends JPanel {
         buttonPanel.add(saveButton);
         
         JButton cancelButton = new JButton("Abbrechen");
+        cancelButton.setFont(GROSSE_BUTTON_SCHRIFT);
+        cancelButton.setPreferredSize(GROSSE_BUTTON_GROESSE);
         cancelButton.addActionListener(e -> dialog.dispose());
         buttonPanel.add(cancelButton);
         
         dialog.add(buttonPanel, gbc);
         
         dialog.pack();
+        dialog.setSize(500, 350);
         dialog.setLocationRelativeTo(this);
         dialog.setVisible(true);
     }
@@ -438,25 +471,31 @@ public class FahrzeugPanel extends JPanel {
                                          "Fahrzeug bearbeiten", true);
             dialog.setLayout(new GridBagLayout());
             GridBagConstraints gbc = new GridBagConstraints();
-            gbc.insets = new Insets(5, 10, 5, 10);
+            gbc.insets = new Insets(12, 15, 12, 15);
             gbc.fill = GridBagConstraints.HORIZONTAL;
             
             // Kennzeichen
             gbc.gridx = 0;
             gbc.gridy = 0;
-            dialog.add(new JLabel("Kennzeichen:"), gbc);
+            JLabel kennzeichenLabel = new JLabel("Kennzeichen:");
+            kennzeichenLabel.setFont(GROSSE_LABEL_SCHRIFT);
+            dialog.add(kennzeichenLabel, gbc);
             
             gbc.gridx = 1;
-            JTextField kennzeichenField = new JTextField(fahrzeug.getKennzeichen(), 15);
+            JTextField kennzeichenField = new JTextField(fahrzeug.getKennzeichen(), 20);
+            kennzeichenField.setFont(GROSSE_FIELD_SCHRIFT);
             dialog.add(kennzeichenField, gbc);
             
             // Zustand
             gbc.gridx = 0;
             gbc.gridy = 1;
-            dialog.add(new JLabel("Zustand:"), gbc);
+            JLabel zustandLabel = new JLabel("Zustand:");
+            zustandLabel.setFont(GROSSE_LABEL_SCHRIFT);
+            dialog.add(zustandLabel, gbc);
             
             gbc.gridx = 1;
             JComboBox<FahrzeugZustand> zustandCombo = new JComboBox<>(FahrzeugZustand.values());
+            zustandCombo.setFont(GROSSE_FIELD_SCHRIFT);
             zustandCombo.setSelectedItem(fahrzeug.getZustand());
             dialog.add(zustandCombo, gbc);
             
@@ -464,9 +503,11 @@ public class FahrzeugPanel extends JPanel {
             gbc.gridx = 0;
             gbc.gridy = 2;
             gbc.gridwidth = 2;
-            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
             
             JButton saveButton = new JButton("Speichern");
+            saveButton.setFont(GROSSE_BUTTON_SCHRIFT);
+            saveButton.setPreferredSize(GROSSE_BUTTON_GROESSE);
             saveButton.addActionListener(e -> {
                 String kennzeichen = kennzeichenField.getText().trim();
                 FahrzeugZustand zustand = (FahrzeugZustand) zustandCombo.getSelectedItem();
@@ -501,12 +542,15 @@ public class FahrzeugPanel extends JPanel {
             buttonPanel.add(saveButton);
             
             JButton cancelButton = new JButton("Abbrechen");
+            cancelButton.setFont(GROSSE_BUTTON_SCHRIFT);
+            cancelButton.setPreferredSize(GROSSE_BUTTON_GROESSE);
             cancelButton.addActionListener(e -> dialog.dispose());
             buttonPanel.add(cancelButton);
             
             dialog.add(buttonPanel, gbc);
             
             dialog.pack();
+            dialog.setSize(450, 300);
             dialog.setLocationRelativeTo(this);
             dialog.setVisible(true);
             
@@ -588,7 +632,7 @@ public class FahrzeugPanel extends JPanel {
             
             if (neuerZustand != null) {
                 fahrzeug.setZustand(neuerZustand);
-                system.getFahrzeugDao().update(fahrzeug);
+                system.getFahrzeugDao().updateStatusAndKilometerstand(fahrzeug);
                 loadFahrzeuge();
                 
                 JOptionPane.showMessageDialog(this,
@@ -612,51 +656,70 @@ public class FahrzeugPanel extends JPanel {
                                      "Fahrzeugtyp hinzufügen", true);
         dialog.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 10, 5, 10);
+        gbc.insets = new Insets(12, 15, 12, 15);
         gbc.fill = GridBagConstraints.HORIZONTAL;
         
         // Fields
-        JTextField herstellerField = new JTextField(15);
-        JTextField modellField = new JTextField(15);
-        JTextField kategorieField = new JTextField(15);
+        JTextField herstellerField = new JTextField(20);
+        herstellerField.setFont(GROSSE_FIELD_SCHRIFT);
+        JTextField modellField = new JTextField(20);
+        modellField.setFont(GROSSE_FIELD_SCHRIFT);
+        JTextField kategorieField = new JTextField(20);
+        kategorieField.setFont(GROSSE_FIELD_SCHRIFT);
         JComboBox<Antriebsart> antriebCombo = new JComboBox<>(Antriebsart.values());
+        antriebCombo.setFont(GROSSE_FIELD_SCHRIFT);
         JSpinner sitzplaetzeSpinner = new JSpinner(new SpinnerNumberModel(5, 2, 50, 1));
-        JTextField preisField = new JTextField("50.00", 15);
+        sitzplaetzeSpinner.setFont(GROSSE_FIELD_SCHRIFT);
+        ((JSpinner.DefaultEditor) sitzplaetzeSpinner.getEditor()).getTextField().setFont(GROSSE_FIELD_SCHRIFT);
+        JTextField preisField = new JTextField("50.00", 20);
+        preisField.setFont(GROSSE_FIELD_SCHRIFT);
         
         // Layout
         int row = 0;
         gbc.gridx = 0; gbc.gridy = row;
-        dialog.add(new JLabel("Hersteller:"), gbc);
+        JLabel herstellerLabel = new JLabel("Hersteller:");
+        herstellerLabel.setFont(GROSSE_LABEL_SCHRIFT);
+        dialog.add(herstellerLabel, gbc);
         gbc.gridx = 1;
         dialog.add(herstellerField, gbc);
         
         row++;
         gbc.gridx = 0; gbc.gridy = row;
-        dialog.add(new JLabel("Modell:"), gbc);
+        JLabel modellLabel = new JLabel("Modell:");
+        modellLabel.setFont(GROSSE_LABEL_SCHRIFT);
+        dialog.add(modellLabel, gbc);
         gbc.gridx = 1;
         dialog.add(modellField, gbc);
         
         row++;
         gbc.gridx = 0; gbc.gridy = row;
-        dialog.add(new JLabel("Kategorie:"), gbc);
+        JLabel kategorieLabel = new JLabel("Kategorie:");
+        kategorieLabel.setFont(GROSSE_LABEL_SCHRIFT);
+        dialog.add(kategorieLabel, gbc);
         gbc.gridx = 1;
         dialog.add(kategorieField, gbc);
         
         row++;
         gbc.gridx = 0; gbc.gridy = row;
-        dialog.add(new JLabel("Antriebsart:"), gbc);
+        JLabel antriebLabel = new JLabel("Antriebsart:");
+        antriebLabel.setFont(GROSSE_LABEL_SCHRIFT);
+        dialog.add(antriebLabel, gbc);
         gbc.gridx = 1;
         dialog.add(antriebCombo, gbc);
         
         row++;
         gbc.gridx = 0; gbc.gridy = row;
-        dialog.add(new JLabel("Sitzplätze:"), gbc);
+        JLabel sitzplaetzeLabel = new JLabel("Sitzplätze:");
+        sitzplaetzeLabel.setFont(GROSSE_LABEL_SCHRIFT);
+        dialog.add(sitzplaetzeLabel, gbc);
         gbc.gridx = 1;
         dialog.add(sitzplaetzeSpinner, gbc);
         
         row++;
         gbc.gridx = 0; gbc.gridy = row;
-        dialog.add(new JLabel("Tagespreis (€):"), gbc);
+        JLabel preisLabel = new JLabel("Tagespreis (€):");
+        preisLabel.setFont(GROSSE_LABEL_SCHRIFT);
+        dialog.add(preisLabel, gbc);
         gbc.gridx = 1;
         dialog.add(preisField, gbc);
         
@@ -665,9 +728,11 @@ public class FahrzeugPanel extends JPanel {
         gbc.gridx = 0;
         gbc.gridy = row;
         gbc.gridwidth = 2;
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
         
         JButton saveButton = new JButton("Speichern");
+        saveButton.setFont(GROSSE_BUTTON_SCHRIFT);
+        saveButton.setPreferredSize(GROSSE_BUTTON_GROESSE);
         saveButton.addActionListener(e -> {
             try {
                 String hersteller = herstellerField.getText().trim();
@@ -711,12 +776,15 @@ public class FahrzeugPanel extends JPanel {
         buttonPanel.add(saveButton);
         
         JButton cancelButton = new JButton("Abbrechen");
+        cancelButton.setFont(GROSSE_BUTTON_SCHRIFT);
+        cancelButton.setPreferredSize(GROSSE_BUTTON_GROESSE);
         cancelButton.addActionListener(e -> dialog.dispose());
         buttonPanel.add(cancelButton);
         
         dialog.add(buttonPanel, gbc);
         
         dialog.pack();
+        dialog.setSize(500, 450);
         dialog.setLocationRelativeTo(this);
         dialog.setVisible(true);
     }
@@ -734,11 +802,173 @@ public class FahrzeugPanel extends JPanel {
             return;
         }
         
-        JOptionPane.showMessageDialog(this,
-            "Bearbeiten von Fahrzeugtypen ist aktuell nicht implementiert.\n" +
-            "Bitte löschen Sie den Typ und erstellen Sie einen neuen.",
-            "Information",
-            JOptionPane.INFORMATION_MESSAGE);
+        int id = ((Number) fahrzeugtypTableModel.getValueAt(selectedRow, 0)).intValue();
+        
+        try {
+            List<Fahrzeugtyp> typen = system.getFahrzeugDao().findAllFahrzeugtypen();
+            Fahrzeugtyp typ = typen.stream().filter(t -> t.getId() == id).findFirst().orElse(null);
+            
+            if (typ == null) {
+                JOptionPane.showMessageDialog(this,
+                    "Fahrzeugtyp nicht gefunden.",
+                    "Fehler",
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), 
+                                         "Fahrzeugtyp bearbeiten", true);
+            dialog.setLayout(new GridBagLayout());
+            GridBagConstraints gbc = new GridBagConstraints();
+            gbc.insets = new Insets(12, 15, 12, 15);
+            gbc.fill = GridBagConstraints.HORIZONTAL;
+            
+            // Fields
+            JTextField herstellerField = new JTextField(typ.getHersteller(), 20);
+            herstellerField.setFont(GROSSE_FIELD_SCHRIFT);
+            JTextField modellField = new JTextField(typ.getModellBezeichnung(), 20);
+            modellField.setFont(GROSSE_FIELD_SCHRIFT);
+            JTextField kategorieField = new JTextField(typ.getKategorie(), 20);
+            kategorieField.setFont(GROSSE_FIELD_SCHRIFT);
+            JComboBox<Antriebsart> antriebCombo = new JComboBox<>(Antriebsart.values());
+            antriebCombo.setFont(GROSSE_FIELD_SCHRIFT);
+            antriebCombo.setSelectedItem(typ.getAntriebsart());
+            
+            int sitzplaetzeValue = typ.getSitzplaetze();
+            if (sitzplaetzeValue < 2) sitzplaetzeValue = 2;
+            if (sitzplaetzeValue > 50) sitzplaetzeValue = 50;
+            JSpinner sitzplaetzeSpinner = new JSpinner(new SpinnerNumberModel(sitzplaetzeValue, 2, 50, 1));
+            sitzplaetzeSpinner.setFont(GROSSE_FIELD_SCHRIFT);
+            ((JSpinner.DefaultEditor) sitzplaetzeSpinner.getEditor()).getTextField().setFont(GROSSE_FIELD_SCHRIFT);
+            JTextField preisField = new JTextField(String.format(Locale.US, "%.2f", typ.getStandardTagesPreis()), 20);
+            preisField.setFont(GROSSE_FIELD_SCHRIFT);
+            
+            // Layout
+            int row = 0;
+            gbc.gridx = 0; gbc.gridy = row;
+            JLabel herstellerLabel = new JLabel("Hersteller:");
+            herstellerLabel.setFont(GROSSE_LABEL_SCHRIFT);
+            dialog.add(herstellerLabel, gbc);
+            gbc.gridx = 1;
+            dialog.add(herstellerField, gbc);
+            
+            row++;
+            gbc.gridx = 0; gbc.gridy = row;
+            JLabel modellLabel = new JLabel("Modell:");
+            modellLabel.setFont(GROSSE_LABEL_SCHRIFT);
+            dialog.add(modellLabel, gbc);
+            gbc.gridx = 1;
+            dialog.add(modellField, gbc);
+            
+            row++;
+            gbc.gridx = 0; gbc.gridy = row;
+            JLabel kategorieLabel = new JLabel("Kategorie:");
+            kategorieLabel.setFont(GROSSE_LABEL_SCHRIFT);
+            dialog.add(kategorieLabel, gbc);
+            gbc.gridx = 1;
+            dialog.add(kategorieField, gbc);
+            
+            row++;
+            gbc.gridx = 0; gbc.gridy = row;
+            JLabel antriebLabel = new JLabel("Antriebsart:");
+            antriebLabel.setFont(GROSSE_LABEL_SCHRIFT);
+            dialog.add(antriebLabel, gbc);
+            gbc.gridx = 1;
+            dialog.add(antriebCombo, gbc);
+            
+            row++;
+            gbc.gridx = 0; gbc.gridy = row;
+            JLabel sitzplaetzeLabel = new JLabel("Sitzplätze:");
+            sitzplaetzeLabel.setFont(GROSSE_LABEL_SCHRIFT);
+            dialog.add(sitzplaetzeLabel, gbc);
+            gbc.gridx = 1;
+            dialog.add(sitzplaetzeSpinner, gbc);
+            
+            row++;
+            gbc.gridx = 0; gbc.gridy = row;
+            JLabel preisLabel = new JLabel("Tagespreis (€):");
+            preisLabel.setFont(GROSSE_LABEL_SCHRIFT);
+            dialog.add(preisLabel, gbc);
+            gbc.gridx = 1;
+            dialog.add(preisField, gbc);
+            
+            // Buttons
+            row++;
+            gbc.gridx = 0;
+            gbc.gridy = row;
+            gbc.gridwidth = 2;
+            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+            
+            JButton saveButton = new JButton("Speichern");
+            saveButton.setFont(GROSSE_BUTTON_SCHRIFT);
+            saveButton.setPreferredSize(GROSSE_BUTTON_GROESSE);
+            saveButton.addActionListener(e -> {
+                try {
+                    String hersteller = herstellerField.getText().trim();
+                    String modell = modellField.getText().trim();
+                    String kategorie = kategorieField.getText().trim();
+                    Antriebsart antrieb = (Antriebsart) antriebCombo.getSelectedItem();
+                    int sitzplaetze = (Integer) sitzplaetzeSpinner.getValue();
+                    double preis = Double.parseDouble(preisField.getText().trim());
+                    
+                    if (hersteller.isEmpty() || modell.isEmpty() || kategorie.isEmpty()) {
+                        JOptionPane.showMessageDialog(dialog,
+                            "Bitte füllen Sie alle Felder aus.",
+                            "Eingabefehler",
+                            JOptionPane.WARNING_MESSAGE);
+                        return;
+                    }
+                    
+                    typ.setHersteller(hersteller);
+                    typ.setModellBezeichnung(modell);
+                    typ.setKategorie(kategorie);
+                    typ.setAntriebsart(antrieb);
+                    typ.setSitzplaetze(sitzplaetze);
+                    typ.setStandardTagesPreis(preis);
+                    
+                    system.getFahrzeugDao().updateFahrzeugtyp(typ);
+                    
+                    loadFahrzeugtypen();
+                    loadFahrzeuge();
+                    dialog.dispose();
+                    
+                    JOptionPane.showMessageDialog(this,
+                        "Fahrzeugtyp erfolgreich aktualisiert.",
+                        "Erfolg",
+                        JOptionPane.INFORMATION_MESSAGE);
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(dialog,
+                        "Ungültiger Preis.",
+                        "Eingabefehler",
+                        JOptionPane.ERROR_MESSAGE);
+                } catch (SQLException ex) {
+                    JOptionPane.showMessageDialog(dialog,
+                        "Fehler beim Speichern: " + ex.getMessage(),
+                        "Fehler",
+                        JOptionPane.ERROR_MESSAGE);
+                }
+            });
+            buttonPanel.add(saveButton);
+            
+            JButton cancelButton = new JButton("Abbrechen");
+            cancelButton.setFont(GROSSE_BUTTON_SCHRIFT);
+            cancelButton.setPreferredSize(GROSSE_BUTTON_GROESSE);
+            cancelButton.addActionListener(e -> dialog.dispose());
+            buttonPanel.add(cancelButton);
+            
+            dialog.add(buttonPanel, gbc);
+            
+            dialog.pack();
+            dialog.setSize(500, 450);
+            dialog.setLocationRelativeTo(this);
+            dialog.setVisible(true);
+            
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this,
+                "Fehler beim Laden des Fahrzeugtyps: " + e.getMessage(),
+                "Fehler",
+                JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     /**

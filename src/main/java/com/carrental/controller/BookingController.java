@@ -89,11 +89,11 @@ public class BookingController {
             
             // In Datenbank speichern
             vertrag = system.getMietvertragDao().create(vertrag);
-            
-            // Fahrzeugstatus aktualisieren
+
+            // Fahrzeugstatus aktualisieren - verwendet spezialisierte Methode ohne Fahrzeugtyp
             fahrzeug.setZustand(FahrzeugZustand.VERMIETET);
-            system.getFahrzeugDao().update(fahrzeug);
-            
+            system.getFahrzeugDao().updateStatusAndKilometerstand(fahrzeug);
+
             // Vertragsstatus aktualisieren
             vertrag.setStatus(VertragsStatus.BESTAETIGT);
             system.getMietvertragDao().update(vertrag);
@@ -259,15 +259,15 @@ public class BookingController {
             // Vertrag stornieren
             vertrag.stornieren();
             
-            // In Datenbank aktualisieren
-            system.getMietvertragDao().update(vertrag);
+            // Nur den Status aktualisieren (vermeidet Foreign-Key-Probleme)
+            system.getMietvertragDao().updateStatus(vertrag.getId(), vertrag.getStatus().name());
 
             // Fahrzeugstatus ggf. aktualisieren
             if (vertrag.getFahrzeug() != null) {
                 Fahrzeug fahrzeug = vertrag.getFahrzeug();
                 if (!hasAktiveVertraegeForFahrzeug(fahrzeug, vertrag.getId())) {
                     fahrzeug.setZustand(FahrzeugZustand.VERFUEGBAR);
-                    system.getFahrzeugDao().update(fahrzeug);
+                    system.getFahrzeugDao().updateStatusAndKilometerstand(fahrzeug);
                 }
             }
             
@@ -295,11 +295,12 @@ public class BookingController {
         try {
             // Vertrag abschließen
             vertrag.abschliessen();
-            
-            // Kilometerstand aktualisieren
+             
+            // Kilometerstand und Status aktualisieren
             if (vertrag.getFahrzeug() != null) {
                 vertrag.getFahrzeug().setAktuellerKilometerstand(kilometerstand);
-                system.getFahrzeugDao().update(vertrag.getFahrzeug());
+                vertrag.getFahrzeug().setZustand(FahrzeugZustand.VERFUEGBAR);
+                system.getFahrzeugDao().updateStatusAndKilometerstand(vertrag.getFahrzeug());
             }
             
             // Vertrag in DB aktualisieren

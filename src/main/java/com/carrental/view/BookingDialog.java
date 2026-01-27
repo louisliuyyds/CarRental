@@ -316,7 +316,7 @@ public class BookingDialog extends JDialog {
 
         berechneterPreis = bookingController.calculateGesamtpreis(tempVertrag);
 
-        long tage = ChronoUnit.DAYS.between(startDatum, endDatum) + 1;
+        long tage = ChronoUnit.DAYS.between(startDatum, endDatum);
         preisLabel.setText(String.format("%.2f € (%d Tage)", berechneterPreis, tage));
         buchenButton.setEnabled(true);
     }

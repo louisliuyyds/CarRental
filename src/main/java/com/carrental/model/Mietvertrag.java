@@ -99,16 +99,11 @@ public class Mietvertrag {
         }
     }
 
-    /**
-     * Berechnet die Mietdauer in Tagen.
-     * 
-     * @return Anzahl der Miettage
-     */
     public int getMietdauerTage() {
         if (startDatum == null || endDatum == null) {
             return 0;
         }
-        return (int) ChronoUnit.DAYS.between(startDatum, endDatum) + 1; // +1 um beide Tage einzuschließen
+        return (int) ChronoUnit.DAYS.between(startDatum, endDatum);
     }
 
     /**

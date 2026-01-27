@@ -200,6 +200,23 @@ public class MietvertragDao implements GenericDao<Mietvertrag> {
         return vertraege;
     }
 
+    /**
+     * Aktualisiert nur den Status eines Mietvertrags.
+     * Diese Methode umgeht potenzielle Foreign-Key-Probleme.
+     */
+    public boolean updateStatus(int vertragId, String neuerStatus) throws SQLException {
+        String sql = "UPDATE Mietvertrag SET Status = ? WHERE ID = ?";
+        
+        try (Connection conn = DatabaseConnection.create(config);
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setString(1, neuerStatus);
+            stmt.setInt(2, vertragId);
+            
+            return stmt.executeUpdate() > 0;
+        }
+    }
+    
     @Override
     public boolean update(Mietvertrag vertrag) throws SQLException {
         String sql = "UPDATE Mietvertrag SET Mietnummer = ?, StartDatum = ?, EndDatum = ?, " +
