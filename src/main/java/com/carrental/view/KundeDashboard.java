@@ -523,7 +523,12 @@ public class KundeDashboard extends JPanel {
             
             BookingDialog dialog = new BookingDialog(mainFrame, system, authController, 
                                                      bookingController, fahrzeug);
-            dialog.setZeitraum(range[0], range[1]);
+            
+            // Zeitraum nach dem Anzeigen setzen
+            SwingUtilities.invokeLater(() -> {
+                dialog.setZeitraum(range[0], range[1]);
+            });
+            
             dialog.setVisible(true);
             
             // Nach Dialog-Schließen Daten aktualisieren

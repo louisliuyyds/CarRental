@@ -8,22 +8,20 @@ import com.carrental.model.Mietvertrag;
 import com.carrental.model.Zusatzoption;
 
 import javax.swing.*;
-import javax.swing.SpinnerDateModel;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.sql.SQLException;
 import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
-
-import javax.swing.event.ChangeListener;
+import java.util.Set;
 
 /**
  * Dialog für die Erstellung einer neuen Buchung.
- * Ermöglicht die Auswahl von Zeitraum und Zusatzoptionen.
+ * Ermöglicht die Vorschau des Vertrags und die Auswahl von Zusatzoptionen.
  */
 public class BookingDialog extends JDialog {
 
@@ -32,16 +30,23 @@ public class BookingDialog extends JDialog {
     private final BookingController bookingController;
     private final Fahrzeug fahrzeug;
     
-    private JSpinner startDatumSpinner;
-    private JSpinner endDatumSpinner;
+    private JLabel startDatumLabel;
+    private JLabel endDatumLabel;
     private JList<String> zusatzoptionList;
     private DefaultListModel<String> zusatzoptionListModel;
     private JLabel preisLabel;
     private JButton buchenButton;
-    private JButton abbrechenButton;
     
     private List<Zusatzoption> verfuegbareOptionen;
+    private Set<Integer> ausgewaehlteOptionen;
     private double berechneterPreis = 0.0;
+    private LocalDate startDatum;
+    private LocalDate endDatum;
+
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+    private static final Font GROSSE_SCHRIFT = new Font("Arial", Font.PLAIN, 18);
+    private static final Font GROSSE_TITEL_SCHRIFT = new Font("Arial", Font.BOLD, 22);
+    private static final Font GROSSER_BUTTON_SCHRIFT = new Font("Arial", Font.BOLD, 16);
 
     /**
      * Konstruktor für den Buchungsdialog.
@@ -54,13 +59,13 @@ public class BookingDialog extends JDialog {
         this.authController = authController;
         this.bookingController = bookingController;
         this.fahrzeug = fahrzeug;
+        this.ausgewaehlteOptionen = new HashSet<>();
         
         initializeUI();
         loadZusatzoptionen();
-        installAutoRecalcListeners();
-        updatePreisUndVerfuegbarkeit();
         
-        setSize(500, 600);
+        pack();
+        setSize(650, 700);
         setLocationRelativeTo(parent);
     }
 
@@ -73,15 +78,15 @@ public class BookingDialog extends JDialog {
         // Header
         JPanel headerPanel = new JPanel();
         headerPanel.setBackground(new Color(70, 130, 180));
-        headerPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        headerPanel.setBorder(new EmptyBorder(15, 15, 15, 15));
         
         String fahrzeugInfo = String.format("%s %s (%s)", 
             fahrzeug.getFahrzeugtyp() != null ? fahrzeug.getFahrzeugtyp().getHersteller() : "",
             fahrzeug.getFahrzeugtyp() != null ? fahrzeug.getFahrzeugtyp().getModellBezeichnung() : "",
             fahrzeug.getKennzeichen());
         
-        JLabel headerLabel = new JLabel("Buchung: " + fahrzeugInfo);
-        headerLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        JLabel headerLabel = new JLabel("Vertragsvorschau: " + fahrzeugInfo);
+        headerLabel.setFont(GROSSE_TITEL_SCHRIFT);
         headerLabel.setForeground(Color.WHITE);
         headerPanel.add(headerLabel);
         
@@ -90,39 +95,45 @@ public class BookingDialog extends JDialog {
         // Formular
         JPanel formPanel = new JPanel();
         formPanel.setLayout(new BoxLayout(formPanel, BoxLayout.Y_AXIS));
-        formPanel.setBorder(BorderFactory.createEmptyBorder(20, 30, 20, 30));
+        formPanel.setBorder(new EmptyBorder(20, 30, 20, 30));
+        formPanel.setBackground(Color.WHITE);
         
         // Fahrzeugdetails
-        JPanel detailsPanel = new JPanel(new GridLayout(3, 2, 10, 10));
+        JPanel detailsPanel = new JPanel(new GridLayout(3, 1, 8, 8));
         detailsPanel.setBorder(BorderFactory.createTitledBorder("Fahrzeugdetails"));
+        detailsPanel.setBackground(Color.WHITE);
         
-        detailsPanel.add(new JLabel("Kategorie:"));
-        detailsPanel.add(new JLabel(fahrzeug.getFahrzeugtyp() != null ? 
+        JLabel kategorieLabel = new JLabel("Kategorie: " + (fahrzeug.getFahrzeugtyp() != null ? 
             fahrzeug.getFahrzeugtyp().getKategorie() : "-"));
+        kategorieLabel.setFont(GROSSE_SCHRIFT);
+        detailsPanel.add(kategorieLabel);
         
-        detailsPanel.add(new JLabel("Tagespreis:"));
-        detailsPanel.add(new JLabel(fahrzeug.getFahrzeugtyp() != null ? 
+        JLabel preisLabelInit = new JLabel("Tagespreis: " + (fahrzeug.getFahrzeugtyp() != null ? 
             String.format("%.2f €", fahrzeug.getFahrzeugtyp().getStandardTagesPreis()) : "-"));
+        preisLabelInit.setFont(GROSSE_SCHRIFT);
+        detailsPanel.add(preisLabelInit);
         
-        detailsPanel.add(new JLabel("Antrieb:"));
-        detailsPanel.add(new JLabel(fahrzeug.getFahrzeugtyp() != null && 
+        JLabel antriebLabel = new JLabel("Antrieb: " + (fahrzeug.getFahrzeugtyp() != null && 
             fahrzeug.getFahrzeugtyp().getAntriebsart() != null ? 
             fahrzeug.getFahrzeugtyp().getAntriebsart().toString() : "-"));
+        antriebLabel.setFont(GROSSE_SCHRIFT);
+        detailsPanel.add(antriebLabel);
         
         formPanel.add(detailsPanel);
         formPanel.add(Box.createVerticalStrut(20));
         
-        // Zeitraum
-        JPanel zeitraumPanel = new JPanel(new GridLayout(2, 2, 10, 10));
+        // Zeitraum (nur Anzeige, nicht editierbar)
+        JPanel zeitraumPanel = new JPanel(new GridLayout(2, 1, 8, 8));
         zeitraumPanel.setBorder(BorderFactory.createTitledBorder("Mietzeitraum"));
-
-        zeitraumPanel.add(new JLabel("Startdatum:"));
-        startDatumSpinner = createDateSpinner(LocalDate.now().plusDays(1));
-        zeitraumPanel.add(startDatumSpinner);
-
-        zeitraumPanel.add(new JLabel("Enddatum:"));
-        endDatumSpinner = createDateSpinner(LocalDate.now().plusDays(8));
-        zeitraumPanel.add(endDatumSpinner);
+        zeitraumPanel.setBackground(Color.WHITE);
+        
+        startDatumLabel = new JLabel("Startdatum: -");
+        startDatumLabel.setFont(GROSSE_SCHRIFT);
+        zeitraumPanel.add(startDatumLabel);
+        
+        endDatumLabel = new JLabel("Enddatum: -");
+        endDatumLabel.setFont(GROSSE_SCHRIFT);
+        zeitraumPanel.add(endDatumLabel);
         
         formPanel.add(zeitraumPanel);
         formPanel.add(Box.createVerticalStrut(20));
@@ -130,14 +141,33 @@ public class BookingDialog extends JDialog {
         // Zusatzoptionen
         JPanel optionenPanel = new JPanel(new BorderLayout());
         optionenPanel.setBorder(BorderFactory.createTitledBorder("Zusatzoptionen (optional)"));
+        optionenPanel.setBackground(Color.WHITE);
         
         zusatzoptionListModel = new DefaultListModel<>();
         zusatzoptionList = new JList<>(zusatzoptionListModel);
-        zusatzoptionList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+        zusatzoptionList.setFont(GROSSE_SCHRIFT);
+        zusatzoptionList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        zusatzoptionList.setFixedCellHeight(30);
         
         JScrollPane optionenScroll = new JScrollPane(zusatzoptionList);
-        optionenScroll.setPreferredSize(new Dimension(400, 100));
+        optionenScroll.setPreferredSize(new Dimension(450, 120));
         optionenPanel.add(optionenScroll, BorderLayout.CENTER);
+        
+        // Buttons für Zusatzoptionen
+        JPanel optionenButtonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+        optionenButtonPanel.setBackground(Color.WHITE);
+        
+        JButton auswaehlenButton = new JButton("Auswählen");
+        auswaehlenButton.setFont(GROSSER_BUTTON_SCHRIFT);
+        auswaehlenButton.addActionListener(e -> zusatzoptionAuswaehlen());
+        optionenButtonPanel.add(auswaehlenButton);
+        
+        JButton abwaehlenButton = new JButton("Abwählen");
+        abwaehlenButton.setFont(GROSSER_BUTTON_SCHRIFT);
+        abwaehlenButton.addActionListener(e -> auswahlAbwaehlen());
+        optionenButtonPanel.add(abwaehlenButton);
+        
+        optionenPanel.add(optionenButtonPanel, BorderLayout.SOUTH);
         
         formPanel.add(optionenPanel);
         formPanel.add(Box.createVerticalStrut(20));
@@ -145,9 +175,10 @@ public class BookingDialog extends JDialog {
         // Preis
         JPanel preisPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         preisPanel.setBorder(BorderFactory.createTitledBorder("Gesamtpreis"));
+        preisPanel.setBackground(Color.WHITE);
         
-        preisLabel = new JLabel("Bitte Preis berechnen");
-        preisLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        preisLabel = new JLabel("Bitte Zeitraum wählen");
+        preisLabel.setFont(new Font("Arial", Font.BOLD, 22));
         preisPanel.add(preisLabel);
         
         formPanel.add(preisPanel);
@@ -155,16 +186,22 @@ public class BookingDialog extends JDialog {
         add(formPanel, BorderLayout.CENTER);
         
         // Buttons
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 25, 15));
+        buttonPanel.setBackground(Color.WHITE);
+        buttonPanel.setBorder(new EmptyBorder(15, 15, 20, 15));
 
         buchenButton = new JButton("Jetzt buchen");
-        buchenButton.setFont(new Font("Arial", Font.BOLD, 13));
+        buchenButton.setFont(GROSSER_BUTTON_SCHRIFT);
         buchenButton.setBackground(new Color(70, 130, 180));
-        buchenButton.setForeground(Color.WHITE);
+        buchenButton.setForeground(Color.BLACK);
+        buchenButton.setEnabled(false);
+        buchenButton.setPreferredSize(new Dimension(180, 45));
         buchenButton.addActionListener(e -> buchungDurchfuehren());
         buttonPanel.add(buchenButton);
         
-        abbrechenButton = new JButton("Abbrechen");
+        JButton abbrechenButton = new JButton("Abbrechen");
+        abbrechenButton.setFont(GROSSER_BUTTON_SCHRIFT);
+        abbrechenButton.setPreferredSize(new Dimension(130, 45));
         abbrechenButton.addActionListener(e -> dispose());
         buttonPanel.add(abbrechenButton);
         
@@ -177,9 +214,9 @@ public class BookingDialog extends JDialog {
     private void loadZusatzoptionen() {
         try {
             verfuegbareOptionen = system.getZusatzoptionDao().findAll();
-
+            
             for (Zusatzoption option : verfuegbareOptionen) {
-                String display = String.format("%s (%.2f € / Tag)",
+                String display = String.format("%s (+%.2f € / Tag)",
                     option.getBezeichnung(), option.getAufpreis());
                 zusatzoptionListModel.addElement(display);
             }
@@ -192,47 +229,94 @@ public class BookingDialog extends JDialog {
     }
 
     /**
-     * Aktualisiert Preis und Verfügbarkeit automatisch, sobald sich Zeitraum oder Optionen ändern.
+     * Wählt eine Zusatzoption aus.
      */
-    private void updatePreisUndVerfuegbarkeit() {
-        LocalDate start = getDate(startDatumSpinner);
-        LocalDate end = getDate(endDatumSpinner);
+    private void zusatzoptionAuswaehlen() {
+        int selectedIndex = zusatzoptionList.getSelectedIndex();
+        if (selectedIndex == -1) {
+            JOptionPane.showMessageDialog(this,
+                "Bitte wählen Sie eine Zusatzoption aus der Liste aus.",
+                "Keine Auswahl",
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        if (!ausgewaehlteOptionen.contains(selectedIndex)) {
+            ausgewaehlteOptionen.add(selectedIndex);
+            String currentText = zusatzoptionListModel.get(selectedIndex);
+            if (!currentText.startsWith("✓ ")) {
+                zusatzoptionListModel.set(selectedIndex, "✓ " + currentText);
+            }
+            updatePreis();
+        }
+    }
 
-        if (start == null || end == null) {
+    /**
+     * Hebt die Auswahl einer Zusatzoption auf.
+     */
+    private void auswahlAbwaehlen() {
+        int selectedIndex = zusatzoptionList.getSelectedIndex();
+        if (selectedIndex == -1) {
+            JOptionPane.showMessageDialog(this,
+                "Bitte wählen Sie eine Zusatzoption aus der Liste aus.",
+                "Keine Auswahl",
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        if (ausgewaehlteOptionen.remove(selectedIndex)) {
+            String currentText = zusatzoptionListModel.get(selectedIndex);
+            if (currentText.startsWith("✓ ")) {
+                zusatzoptionListModel.set(selectedIndex, currentText.substring(2));
+            }
+            updatePreis();
+        }
+    }
+
+    /**
+     * Aktualisiert den Gesamtpreis.
+     */
+    private void updatePreis() {
+        if (preisLabel == null) {
+            return;
+        }
+        
+        if (startDatum == null || endDatum == null) {
             preisLabel.setText("Bitte Zeitraum wählen");
             buchenButton.setEnabled(false);
             return;
         }
 
-        if (!end.isAfter(start)) {
+        if (!endDatum.isAfter(startDatum)) {
             preisLabel.setText("Enddatum nach Startdatum wählen");
             buchenButton.setEnabled(false);
             return;
         }
 
-        if (start.isBefore(LocalDate.now())) {
+        if (startDatum.isBefore(LocalDate.now())) {
             preisLabel.setText("Startdatum darf nicht in der Vergangenheit liegen");
             buchenButton.setEnabled(false);
             return;
         }
 
-        if (!bookingController.isFahrzeugVerfuegbar(fahrzeug, start, end)) {
+        if (!bookingController.isFahrzeugVerfuegbar(fahrzeug, startDatum, endDatum)) {
             preisLabel.setText("Im Zeitraum nicht verfügbar");
             buchenButton.setEnabled(false);
             return;
         }
 
         Mietvertrag tempVertrag = new Mietvertrag(authController.getCurrentKunde(),
-            fahrzeug, start, end);
+            fahrzeug, startDatum, endDatum);
 
-        int[] selectedIndices = zusatzoptionList.getSelectedIndices();
-        for (int index : selectedIndices) {
-            tempVertrag.addZusatzoption(verfuegbareOptionen.get(index));
+        for (Integer index : ausgewaehlteOptionen) {
+            if (index < verfuegbareOptionen.size()) {
+                tempVertrag.addZusatzoption(verfuegbareOptionen.get(index));
+            }
         }
 
         berechneterPreis = bookingController.calculateGesamtpreis(tempVertrag);
 
-        long tage = ChronoUnit.DAYS.between(start, end) + 1;
+        long tage = ChronoUnit.DAYS.between(startDatum, endDatum) + 1;
         preisLabel.setText(String.format("%.2f € (%d Tage)", berechneterPreis, tage));
         buchenButton.setEnabled(true);
     }
@@ -241,29 +325,26 @@ public class BookingDialog extends JDialog {
      * Führt die Buchung durch.
      */
     private void buchungDurchfuehren() {
-        updatePreisUndVerfuegbarkeit();
-        if (!buchenButton.isEnabled()) {
+        if (startDatum == null || endDatum == null) {
             JOptionPane.showMessageDialog(this,
-                "Bitte gültigen Zeitraum wählen (verfügbar) bevor Sie buchen.",
+                "Bitte gültigen Zeitraum wählen.",
                 "Zeitraum prüfen",
                 JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        LocalDate start = getDate(startDatumSpinner);
-        LocalDate end = getDate(endDatumSpinner);
-
         List<Zusatzoption> optionen = new ArrayList<>();
-        int[] selectedIndices = zusatzoptionList.getSelectedIndices();
-        for (int index : selectedIndices) {
-            optionen.add(verfuegbareOptionen.get(index));
+        for (Integer index : ausgewaehlteOptionen) {
+            if (index < verfuegbareOptionen.size()) {
+                optionen.add(verfuegbareOptionen.get(index));
+            }
         }
 
         Mietvertrag vertrag = bookingController.buchungErstellen(
             authController.getCurrentKunde(),
             fahrzeug,
-            start,
-            end,
+            startDatum,
+            endDatum,
             optionen
         );
 
@@ -282,41 +363,20 @@ public class BookingDialog extends JDialog {
         }
     }
 
-    private JSpinner createDateSpinner(LocalDate initialDate) {
-        Date initial = Date.from(initialDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-        SpinnerDateModel model = new SpinnerDateModel(initial, null, null, Calendar.DAY_OF_MONTH);
-        JSpinner spinner = new JSpinner(model);
-        spinner.setEditor(new JSpinner.DateEditor(spinner, "yyyy-MM-dd"));
-        ((JSpinner.DefaultEditor) spinner.getEditor()).getTextField().setColumns(10);
-        return spinner;
-    }
-
-    private LocalDate getDate(JSpinner spinner) {
-        Object value = spinner.getValue();
-        if (value instanceof Date date) {
-            return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        }
-        return null;
-    }
-
-    private void installAutoRecalcListeners() {
-        ChangeListener changeListener = e -> updatePreisUndVerfuegbarkeit();
-        startDatumSpinner.addChangeListener(changeListener);
-        endDatumSpinner.addChangeListener(changeListener);
-        zusatzoptionList.addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) {
-                updatePreisUndVerfuegbarkeit();
-            }
-        });
-    }
-
+    /**
+     * Setzt den Mietzeitraum.
+     */
     public void setZeitraum(LocalDate start, LocalDate end) {
+        this.startDatum = start;
+        this.endDatum = end;
+        
         if (start != null) {
-            startDatumSpinner.setValue(Date.from(start.atStartOfDay(ZoneId.systemDefault()).toInstant()));
+            startDatumLabel.setText("Startdatum: " + start.format(DATE_FORMATTER));
         }
         if (end != null) {
-            endDatumSpinner.setValue(Date.from(end.atStartOfDay(ZoneId.systemDefault()).toInstant()));
+            endDatumLabel.setText("Enddatum: " + end.format(DATE_FORMATTER));
         }
-        updatePreisUndVerfuegbarkeit();
+        
+        updatePreis();
     }
 }
