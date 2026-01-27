@@ -127,9 +127,9 @@ public class FahrzeugPanel extends JPanel {
 
     private void updateFahrzeugButtonState() {
         boolean hasSelection = fahrzeugTable != null && fahrzeugTable.getSelectedRow() != -1;
-        if (editFahrzeugButton != null) editFahrzeugButton.setEnabled(true);
-        if (deleteFahrzeugButton != null) deleteFahrzeugButton.setEnabled(true);
-        if (zustandFahrzeugButton != null) zustandFahrzeugButton.setEnabled(true);
+        if (editFahrzeugButton != null) editFahrzeugButton.setEnabled(hasSelection);
+        if (deleteFahrzeugButton != null) deleteFahrzeugButton.setEnabled(hasSelection);
+        if (zustandFahrzeugButton != null) zustandFahrzeugButton.setEnabled(hasSelection);
 
         if (!hasSelection) {
             if (editFahrzeugButton != null) editFahrzeugButton.setToolTipText("Bitte zuerst ein Fahrzeug auswählen.");
@@ -420,10 +420,10 @@ public class FahrzeugPanel extends JPanel {
             return;
         }
         
-        Long id = (Long) fahrzeugTableModel.getValueAt(selectedRow, 0);
+        int id = ((Number) fahrzeugTableModel.getValueAt(selectedRow, 0)).intValue();
         
         try {
-            Optional<Fahrzeug> fahrzeugOpt = system.getFahrzeugDao().findById(id.intValue());
+            Optional<Fahrzeug> fahrzeugOpt = system.getFahrzeugDao().findById(id);
             if (!fahrzeugOpt.isPresent()) {
                 JOptionPane.showMessageDialog(this,
                     "Fahrzeug nicht gefunden.",
@@ -538,8 +538,8 @@ public class FahrzeugPanel extends JPanel {
         
         if (confirm == JOptionPane.YES_OPTION) {
             try {
-                Long id = (Long) fahrzeugTableModel.getValueAt(selectedRow, 0);
-                system.getFahrzeugDao().delete(id.intValue());
+                int id = ((Number) fahrzeugTableModel.getValueAt(selectedRow, 0)).intValue();
+                system.getFahrzeugDao().delete(id);
                 loadFahrzeuge();
                 
                 JOptionPane.showMessageDialog(this,
@@ -568,10 +568,10 @@ public class FahrzeugPanel extends JPanel {
             return;
         }
         
-        Long id = (Long) fahrzeugTableModel.getValueAt(selectedRow, 0);
+        int id = ((Number) fahrzeugTableModel.getValueAt(selectedRow, 0)).intValue();
         
         try {
-            Optional<Fahrzeug> fahrzeugOpt = system.getFahrzeugDao().findById(id.intValue());
+            Optional<Fahrzeug> fahrzeugOpt = system.getFahrzeugDao().findById(id);
             if (!fahrzeugOpt.isPresent()) {
                 return;
             }
@@ -763,7 +763,7 @@ public class FahrzeugPanel extends JPanel {
         
         if (confirm == JOptionPane.YES_OPTION) {
             try {
-                Long id = (Long) fahrzeugtypTableModel.getValueAt(selectedRow, 0);
+                Long id = ((Number) fahrzeugtypTableModel.getValueAt(selectedRow, 0)).longValue();
                 system.getFahrzeugDao().deleteFahrzeugtyp(id);
                 loadFahrzeugtypen();
                 loadFahrzeuge(); // Refresh Fahrzeuge auch
@@ -786,5 +786,26 @@ public class FahrzeugPanel extends JPanel {
      */
     public void refresh() {
         loadData();
+    }
+
+    /**
+     * Bearbeitet das ausgewählte Fahrzeug (öffentlich für externe Aufrufe).
+     */
+    public void editSelectedFahrzeug() {
+        editFahrzeug();
+    }
+
+    /**
+     * Löscht das ausgewählte Fahrzeug (öffentlich für externe Aufrufe).
+     */
+    public void deleteSelectedFahrzeug() {
+        deleteFahrzeug();
+    }
+
+    /**
+     * Ändert den Zustand des ausgewählten Fahrzeugs (öffentlich für externe Aufrufe).
+     */
+    public void changeSelectedZustand() {
+        changeZustand();
     }
 }

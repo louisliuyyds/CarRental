@@ -89,7 +89,7 @@ cp config/config.properties.template src/main/resources/config.properties
 ./mvnw clean package
 
 # 4. Anwendung starten
-java -jar target/car-rental-system-jar-with-dependencies.jar
+java -jar target/car-rental-system-1.0-SNAPSHOT.jar
 ```
 
 **Die GUI sollte sich automatisch öffnen!**

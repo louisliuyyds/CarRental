@@ -386,54 +386,24 @@ public class MitarbeiterDashboard extends JPanel {
      * Bearbeitet das ausgewählte Fahrzeug.
      */
     private void fahrzeugBearbeiten() {
-        int selectedRow = fahrzeugTable.getSelectedRow();
-        if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this,
-                "Bitte wählen Sie ein Fahrzeug aus.",
-                "Keine Auswahl",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        
-        // Wird durch FahrzeugPanel gehandhabt
         tabbedPane.setSelectedIndex(0);
+        SwingUtilities.invokeLater(() -> fahrzeugPanel.editSelectedFahrzeug());
+    }
+
+    /**
+     * Ändert den Zustand des ausgewählten Fahrzeugs.
+     */
+    private void fahrzeugZustandAendern() {
+        tabbedPane.setSelectedIndex(0);
+        SwingUtilities.invokeLater(() -> fahrzeugPanel.changeSelectedZustand());
     }
 
     /**
      * Löscht das ausgewählte Fahrzeug.
      */
     private void fahrzeugLoeschen() {
-        int selectedRow = fahrzeugTable.getSelectedRow();
-        if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this,
-                "Bitte wählen Sie ein Fahrzeug aus.",
-                "Keine Auswahl",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        
-        int confirm = JOptionPane.showConfirmDialog(this,
-            "Möchten Sie dieses Fahrzeug wirklich löschen?",
-            "Löschen bestätigen",
-            JOptionPane.YES_NO_OPTION);
-        
-        if (confirm == JOptionPane.YES_OPTION) {
-            try {
-                Long id = (Long) fahrzeugTableModel.getValueAt(selectedRow, 0);
-                system.getFahrzeugDao().delete(id.intValue());
-                loadFahrzeuge();
-                
-                JOptionPane.showMessageDialog(this,
-                    "Fahrzeug erfolgreich gelöscht.",
-                    "Erfolg",
-                    JOptionPane.INFORMATION_MESSAGE);
-            } catch (SQLException e) {
-                JOptionPane.showMessageDialog(this,
-                    "Fehler beim Löschen: " + e.getMessage(),
-                    "Fehler",
-                    JOptionPane.ERROR_MESSAGE);
-            }
-        }
+        tabbedPane.setSelectedIndex(0);
+        SwingUtilities.invokeLater(() -> fahrzeugPanel.deleteSelectedFahrzeug());
     }
 
     /**
