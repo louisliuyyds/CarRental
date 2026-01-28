@@ -618,53 +618,62 @@ public class MitarbeiterDashboard extends JPanel {
                 JDialog dialog = new JDialog((JFrame) SwingUtilities.getWindowAncestor(this),
                     "Vertragsdetails", true);
                 dialog.setLayout(new BorderLayout(20, 20));
-                dialog.setSize(1000, 800);
+                dialog.setSize(800, 600);
                 dialog.setLocationRelativeTo(this);
 
                 JPanel contentPanel = new JPanel();
                 contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
-                contentPanel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
+                contentPanel.setBorder(BorderFactory.createEmptyBorder(25, 30, 25, 30));
 
                 StringBuilder details = new StringBuilder();
-                details.append("<html><style>body{font-family:Arial,sans-serif;}</style>");
+                details.append("<html><style>");
+                details.append("body { font-family: Arial, sans-serif; margin: 0; padding: 0; }");
+                details.append(".title { font-size: 24px; font-weight: bold; color: #000000; margin-bottom: 20px; }");
+                details.append(".section-title { font-size: 18px; font-weight: bold; color: #003366; margin-top: 20px; margin-bottom: 10px; border-bottom: 2px solid #003366; padding-bottom: 5px; }");
+                details.append(".info { font-size: 14px; margin: 5px 0; color: #000000; }");
+                details.append(".info-label { font-weight: bold; color: #333333; }");
+                details.append(".price-highlight { font-size: 16px; font-weight: bold; color: #006633; }");
+                details.append(".total-price { font-size: 24px; font-weight: bold; color: #CC0000; margin-top: 25px; }");
+                details.append("</style>");
 
-                details.append("<h1 style='margin-bottom:20px;'>Vertragsnummer: ").append(vertrag.getMietnummer()).append("</h1>");
+                details.append("<div class='title'>Vertragsnummer: ").append(vertrag.getMietnummer()).append("</div>");
 
-                details.append("<h2 style='margin-top:20px; margin-bottom:10px;'>Kunde</h2>");
-                details.append("<p style='margin:5px 0;'>Kunden-ID:     <b>").append(String.format("%20s", vertrag.getKunde().getId())).append("</b></p>");
-                details.append("<p style='margin:5px 0;'>Vorname:       <b>").append(String.format("%20s", vertrag.getKunde().getVorname())).append("</b></p>");
-                details.append("<p style='margin:5px 0;'>Nachname:      <b>").append(String.format("%20s", vertrag.getKunde().getNachname())).append("</b></p>");
+                details.append("<div class='section-title'>Kunde</div>");
+                details.append("<div class='info'><span class='info-label'>Kunden-ID:</span>     ").append(vertrag.getKunde().getId()).append("</div>");
+                details.append("<div class='info'><span class='info-label'>Vorname:</span>       ").append(vertrag.getKunde().getVorname()).append("</div>");
+                details.append("<div class='info'><span class='info-label'>Nachname:</span>      ").append(vertrag.getKunde().getNachname()).append("</div>");
+                details.append("<div class='info'><span class='info-label'>Email:</span>         ").append(vertrag.getKunde().getEmail()).append("</div>");
 
-                details.append("<h2 style='margin-top:20px; margin-bottom:10px;'>Fahrzeug</h2>");
-                details.append("<p style='margin:5px 0;'>Kennzeichen:  <b>").append(String.format("%15s", vertrag.getFahrzeug().getKennzeichen())).append("</b></p>");
+                details.append("<div class='section-title'>Fahrzeug</div>");
+                details.append("<div class='info'><span class='info-label'>Kennzeichen:</span>  ").append(vertrag.getFahrzeug().getKennzeichen()).append("</div>");
                 if (vertrag.getFahrzeug().getFahrzeugtyp() != null) {
                     com.carrental.model.Fahrzeugtyp typ = vertrag.getFahrzeug().getFahrzeugtyp();
-                    details.append("<p style='margin:5px 0;'>Hersteller:   <b>").append(String.format("%15s", typ.getHersteller())).append("</b></p>");
-                    details.append("<p style='margin:5px 0;'>Modell:       <b>").append(String.format("%15s", typ.getModellBezeichnung())).append("</b></p>");
-                    details.append("<p style='margin:5px 0;'>Kategorie:    <b>").append(String.format("%15s", typ.getKategorie())).append("</b></p>");
-                    details.append("<p style='margin:5px 0;'>Antriebsart:  <b>").append(String.format("%15s", typ.getAntriebsart())).append("</b></p>");
-                    details.append("<p style='margin:5px 0;'>Sitzplätze:   <b>").append(String.format("%15s", typ.getSitzplaetze())).append("</b></p>");
-                    details.append("<p style='margin:5px 0;'>Tagespreis:   <b>").append(String.format("%15s", String.format("%.2f €", typ.getStandardTagesPreis()))).append("</b></p>");
+                    details.append("<div class='info'><span class='info-label'>Hersteller:</span>   ").append(typ.getHersteller()).append("</div>");
+                    details.append("<div class='info'><span class='info-label'>Modell:</span>       ").append(typ.getModellBezeichnung()).append("</div>");
+                    details.append("<div class='info'><span class='info-label'>Kategorie:</span>    ").append(typ.getKategorie()).append("</div>");
+                    details.append("<div class='info'><span class='info-label'>Antriebsart:</span>  ").append(typ.getAntriebsart()).append("</div>");
+                    details.append("<div class='info'><span class='info-label'>Sitzplätze:</span>   ").append(typ.getSitzplaetze()).append("</div>");
+                    details.append("<div class='info price-highlight'><span class='info-label'>Tagespreis:</span>    ").append(String.format("%.2f €", typ.getStandardTagesPreis())).append("</div>");
                 }
 
-                details.append("<h2 style='margin-top:20px; margin-bottom:10px;'>Mietzeitraum</h2>");
-                details.append("<p style='margin:5px 0;'>Startdatum:   <b>").append(String.format("%15s", vertrag.getStartDatum())).append("</b></p>");
-                details.append("<p style='margin:5px 0;'>Enddatum:     <b>").append(String.format("%15s", vertrag.getEndDatum())).append("</b></p>");
+                details.append("<div class='section-title'>Mietzeitraum</div>");
+                details.append("<div class='info'><span class='info-label'>Startdatum:</span>   ").append(vertrag.getStartDatum()).append("</div>");
+                details.append("<div class='info'><span class='info-label'>Enddatum:</span>     ").append(vertrag.getEndDatum()).append("</div>");
 
-                details.append("<h2 style='margin-top:20px; margin-bottom:10px;'>Zusatzoptionen</h2>");
+                details.append("<div class='section-title'>Zusatzoptionen</div>");
                 if (!vertrag.getZusatzoptionen().isEmpty()) {
                     for (Zusatzoption opt : vertrag.getZusatzoptionen()) {
-                        details.append("<p style='margin:5px 0;'>- ").append(opt.getBezeichnung())
-                               .append(" (").append(String.format("%.2f €", opt.getAufpreis())).append(")</p>");
+                        details.append("<div class='info'>- ").append(opt.getBezeichnung())
+                               .append(" (").append(String.format("%.2f €", opt.getAufpreis())).append(")</div>");
                     }
                 } else {
-                    details.append("<p style='margin:5px 0;'>Keine Zusatzoptionen gewählt</p>");
+                    details.append("<div class='info'>Keine Zusatzoptionen gewählt</div>");
                 }
 
-                details.append("<h2 style='margin-top:20px; margin-bottom:10px;'>Status</h2>");
-                details.append("<p style='margin:5px 0; font-size: 24px;'>").append(vertrag.getStatus()).append("</p>");
+                details.append("<div class='section-title'>Status</div>");
+                details.append("<div class='info' style='font-size: 16px; font-weight: bold;'>").append(vertrag.getStatus()).append("</div>");
 
-                details.append("<h1 style='margin-top:30px; margin-bottom:10px; color: #462048;'>Gesamtpreis: ").append(String.format("%.2f €", vertrag.getGesamtPreis())).append("</h1>");
+                details.append("<div class='total-price'>Gesamtpreis: ").append(String.format("%.2f €", vertrag.getGesamtPreis())).append("</div>");
 
                 details.append("</html>");
 
@@ -678,8 +687,8 @@ public class MitarbeiterDashboard extends JPanel {
                 contentPanel.add(scrollPane);
 
                 JButton closeButton = new JButton("Schließen");
-                closeButton.setFont(new Font("Arial", Font.BOLD, 18));
-                closeButton.setPreferredSize(new Dimension(150, 50));
+                closeButton.setFont(new Font("Arial", Font.BOLD, 16));
+                closeButton.setPreferredSize(new Dimension(140, 45));
                 closeButton.addActionListener(e -> dialog.dispose());
 
                 JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
@@ -700,9 +709,9 @@ public class MitarbeiterDashboard extends JPanel {
 
     private static final Font GROSSE_SCHRIFT = new Font("Arial", Font.PLAIN, 18);
     private static final Font GROSSE_LABEL_SCHRIFT = new Font("Arial", Font.BOLD, 20);
-    private static final Font DETAIL_TITEL_FONT = new Font("Arial", Font.BOLD, 36);
-    private static final Font DETAIL_LABEL_FONT = new Font("Arial", Font.PLAIN, 32);
-    private static final Font DETAIL_VALUE_FONT = new Font("Arial", Font.PLAIN, 32);
+    private static final Font DETAIL_TITEL_FONT = new Font("Arial", Font.BOLD, 24);
+    private static final Font DETAIL_LABEL_FONT = new Font("Arial", Font.BOLD, 18);
+    private static final Font DETAIL_VALUE_FONT = new Font("Arial", Font.PLAIN, 14);
     
     /**
      * Filtert Verträge nach Status.

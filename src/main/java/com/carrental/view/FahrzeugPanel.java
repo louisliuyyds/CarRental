@@ -406,12 +406,12 @@ public class FahrzeugPanel extends JPanel {
         }
         typCombo.setRenderer(new DefaultListCellRenderer() {
             @Override
-            public Component getListCellRendererComponent(JList<?> list, Object value, 
+            public Component getListCellRendererComponent(JList<?> list, Object value,
                                                          int index, boolean isSelected, boolean cellHasFocus) {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 if (value instanceof Fahrzeugtyp) {
                     Fahrzeugtyp t = (Fahrzeugtyp) value;
-                    setText(t.getHersteller() + " " + t.getModellBezeichnung());
+                    setText(t.getHersteller() + " " + t.getModellBezeichnung() + " (" + t.getKategorie() + ")");
                 }
                 return this;
             }
@@ -443,7 +443,7 @@ public class FahrzeugPanel extends JPanel {
             String kennzeichen = kennzeichenField.getText().trim();
             Fahrzeugtyp typ = (Fahrzeugtyp) typCombo.getSelectedItem();
             FahrzeugZustand zustand = (FahrzeugZustand) zustandCombo.getSelectedItem();
-            
+
             if (kennzeichen.isEmpty()) {
                 JOptionPane.showMessageDialog(dialog,
                     "Bitte geben Sie ein Kennzeichen ein.",
@@ -451,7 +451,7 @@ public class FahrzeugPanel extends JPanel {
                     JOptionPane.WARNING_MESSAGE);
                 return;
             }
-            
+
             if (typ == null) {
                 JOptionPane.showMessageDialog(dialog,
                     "Bitte wählen Sie einen Fahrzeugtyp aus.",
@@ -459,21 +459,49 @@ public class FahrzeugPanel extends JPanel {
                     JOptionPane.WARNING_MESSAGE);
                 return;
             }
-            
+
+            if (typ.getId() <= 0) {
+                JOptionPane.showMessageDialog(dialog,
+                    "Ungültiger Fahrzeugtyp ausgewählt. Bitte wählen Sie einen gültigen Fahrzeugtyp aus.",
+                    "Eingabefehler",
+                    JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            System.out.println("DEBUG: Speichere Fahrzeug:");
+            System.out.println("  Kennzeichen: " + kennzeichen);
+            System.out.println("  Fahrzeugtyp ID: " + typ.getId());
+            System.out.println("  Fahrzeugtyp: " + typ.getHersteller() + " " +
+                typ.getModellBezeichnung() + " (" + typ.getKategorie() + ")");
+            System.out.println("  Zustand: " + zustand);
+
             try {
                 Fahrzeug fahrzeug = new Fahrzeug(kennzeichen, typ, zustand);
+
+                System.out.println("DEBUG: Fahrzeugobjekt erstellt:");
+                System.out.println("  Fahrzeug.getFahrzeugtyp().getId(): " + fahrzeug.getFahrzeugtyp().getId());
+
                 system.getFahrzeugDao().save(fahrzeug);
-                
+
+                System.out.println("DEBUG: Fahrzeug erfolgreich in Datenbank gespeichert");
+
                 loadFahrzeuge();
                 dialog.dispose();
-                
+
                 JOptionPane.showMessageDialog(this,
                     "Fahrzeug erfolgreich hinzugefügt.",
                     "Erfolg",
                     JOptionPane.INFORMATION_MESSAGE);
             } catch (SQLException ex) {
+                System.err.println("ERROR: SQLException beim Speichern des Fahrzeugs:");
+                System.err.println("  Message: " + ex.getMessage());
+                System.err.println("  SQL State: " + ex.getSQLState());
+                System.err.println("  Error Code: " + ex.getErrorCode());
+                ex.printStackTrace();
+
                 JOptionPane.showMessageDialog(dialog,
-                    "Fehler beim Speichern: " + ex.getMessage(),
+                    "Fehler beim Speichern: " + ex.getMessage() + "\n" +
+                    "Bitte überprüfen Sie die Konsole für detaillierte Fehlerinformationen.",
                     "Fehler",
                     JOptionPane.ERROR_MESSAGE);
             }
