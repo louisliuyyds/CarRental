@@ -36,12 +36,15 @@ public class BookingDialog extends JDialog {
     private DefaultListModel<String> zusatzoptionListModel;
     private JLabel preisLabel;
     private JButton buchenButton;
-    
+    private JButton entwurfSpeichernButton;
+
     private List<Zusatzoption> verfuegbareOptionen;
     private Set<Integer> ausgewaehlteOptionen;
     private double berechneterPreis = 0.0;
     private LocalDate startDatum;
     private LocalDate endDatum;
+    private boolean isDraftMode;
+    private Mietvertrag draftVertrag;
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yyyy");
     private static final Font GROSSE_SCHRIFT = new Font("Arial", Font.PLAIN, 18);
@@ -49,21 +52,49 @@ public class BookingDialog extends JDialog {
     private static final Font GROSSER_BUTTON_SCHRIFT = new Font("Arial", Font.BOLD, 16);
 
     /**
-     * Konstruktor für den Buchungsdialog.
+     * Konstruktor für den Buchungsdialog (neue Buchung).
      */
     public BookingDialog(JFrame parent, CarRentalSystem system, AuthController authController,
                          BookingController bookingController, Fahrzeug fahrzeug) {
         super(parent, "Fahrzeug buchen", true);
-        
+
         this.system = system;
         this.authController = authController;
         this.bookingController = bookingController;
         this.fahrzeug = fahrzeug;
         this.ausgewaehlteOptionen = new HashSet<>();
-        
+        this.isDraftMode = false;
+        this.draftVertrag = null;
+
         initializeUI();
         loadZusatzoptionen();
-        
+
+        pack();
+        setSize(650, 700);
+        setLocationRelativeTo(parent);
+    }
+
+    /**
+     * Konstruktor für den Buchungsdialog (Entwurf fortsetzen).
+     */
+    private BookingDialog(JFrame parent, CarRentalSystem system, AuthController authController,
+                          BookingController bookingController, Fahrzeug fahrzeug, Mietvertrag draft) {
+        super(parent, "Buchung fortsetzen", true);
+
+        this.system = system;
+        this.authController = authController;
+        this.bookingController = bookingController;
+        this.fahrzeug = fahrzeug;
+        this.draftVertrag = draft;
+        this.isDraftMode = true;
+        this.ausgewaehlteOptionen = new HashSet<>();
+        this.startDatum = draft.getStartDatum();
+        this.endDatum = draft.getEndDatum();
+
+        initializeUI();
+        loadZusatzoptionen();
+        loadDraftData();
+
         pack();
         setSize(650, 700);
         setLocationRelativeTo(parent);
@@ -190,7 +221,17 @@ public class BookingDialog extends JDialog {
         buttonPanel.setBackground(Color.WHITE);
         buttonPanel.setBorder(new EmptyBorder(15, 15, 20, 15));
 
-        buchenButton = new JButton("Jetzt buchen");
+        entwurfSpeichernButton = new JButton("Als Entwurf speichern");
+        entwurfSpeichernButton.setFont(GROSSER_BUTTON_SCHRIFT);
+        entwurfSpeichernButton.setBackground(new Color(255, 193, 7));
+        entwurfSpeichernButton.setForeground(Color.BLACK);
+        entwurfSpeichernButton.setEnabled(false);
+        entwurfSpeichernButton.setPreferredSize(new Dimension(200, 45));
+        entwurfSpeichernButton.addActionListener(e -> entwurfSpeichern());
+        entwurfSpeichernButton.setVisible(!isDraftMode);
+        buttonPanel.add(entwurfSpeichernButton);
+
+        buchenButton = new JButton(isDraftMode ? "Buchung abschließen" : "Jetzt buchen");
         buchenButton.setFont(GROSSER_BUTTON_SCHRIFT);
         buchenButton.setBackground(new Color(70, 130, 180));
         buchenButton.setForeground(Color.BLACK);
@@ -198,13 +239,13 @@ public class BookingDialog extends JDialog {
         buchenButton.setPreferredSize(new Dimension(180, 45));
         buchenButton.addActionListener(e -> buchungDurchfuehren());
         buttonPanel.add(buchenButton);
-        
+
         JButton abbrechenButton = new JButton("Abbrechen");
         abbrechenButton.setFont(GROSSER_BUTTON_SCHRIFT);
         abbrechenButton.setPreferredSize(new Dimension(130, 45));
         abbrechenButton.addActionListener(e -> dispose());
         buttonPanel.add(abbrechenButton);
-        
+
         add(buttonPanel, BorderLayout.SOUTH);
     }
 
@@ -214,7 +255,7 @@ public class BookingDialog extends JDialog {
     private void loadZusatzoptionen() {
         try {
             verfuegbareOptionen = system.getZusatzoptionDao().findAll();
-            
+
             for (Zusatzoption option : verfuegbareOptionen) {
                 String display = String.format("%s (+%.2f € / Tag)",
                     option.getBezeichnung(), option.getAufpreis());
@@ -226,6 +267,41 @@ public class BookingDialog extends JDialog {
                 "Fehler",
                 JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    /**
+     * Lädt Daten aus einem Entwurf-Vertrag.
+     */
+    private void loadDraftData() {
+        if (draftVertrag == null) {
+            return;
+        }
+
+        if (startDatum != null) {
+            startDatumLabel.setText("Startdatum: " + startDatum.format(DATE_FORMATTER));
+        }
+        if (endDatum != null) {
+            endDatumLabel.setText("Enddatum: " + endDatum.format(DATE_FORMATTER));
+        }
+
+        if (draftVertrag.getZusatzoptionen() != null && !draftVertrag.getZusatzoptionen().isEmpty()) {
+            for (Zusatzoption option : draftVertrag.getZusatzoptionen()) {
+                for (int i = 0; i < verfuegbareOptionen.size(); i++) {
+                    if (verfuegbareOptionen.get(i).getId() == option.getId()) {
+                        if (!ausgewaehlteOptionen.contains(i)) {
+                            ausgewaehlteOptionen.add(i);
+                            String currentText = zusatzoptionListModel.get(i);
+                            if (!currentText.startsWith("✓ ")) {
+                                zusatzoptionListModel.set(i, "✓ " + currentText);
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+        updatePreis();
     }
 
     /**
@@ -280,28 +356,32 @@ public class BookingDialog extends JDialog {
         if (preisLabel == null) {
             return;
         }
-        
+
         if (startDatum == null || endDatum == null) {
             preisLabel.setText("Bitte Zeitraum wählen");
             buchenButton.setEnabled(false);
+            entwurfSpeichernButton.setEnabled(false);
             return;
         }
 
         if (!endDatum.isAfter(startDatum)) {
             preisLabel.setText("Enddatum nach Startdatum wählen");
             buchenButton.setEnabled(false);
+            entwurfSpeichernButton.setEnabled(false);
             return;
         }
 
         if (startDatum.isBefore(LocalDate.now())) {
             preisLabel.setText("Startdatum darf nicht in der Vergangenheit liegen");
             buchenButton.setEnabled(false);
+            entwurfSpeichernButton.setEnabled(false);
             return;
         }
 
-        if (!bookingController.isFahrzeugVerfuegbar(fahrzeug, startDatum, endDatum)) {
+        if (!bookingController.isFahrzeugVerfuegbar(fahrzeug, startDatum, endDatum) && !isDraftMode) {
             preisLabel.setText("Im Zeitraum nicht verfügbar");
             buchenButton.setEnabled(false);
+            entwurfSpeichernButton.setEnabled(false);
             return;
         }
 
@@ -319,6 +399,9 @@ public class BookingDialog extends JDialog {
         long tage = ChronoUnit.DAYS.between(startDatum, endDatum);
         preisLabel.setText(String.format("%.2f € (%d Tage)", berechneterPreis, tage));
         buchenButton.setEnabled(true);
+        if (!isDraftMode) {
+            entwurfSpeichernButton.setEnabled(true);
+        }
     }
 
     /**
@@ -340,7 +423,65 @@ public class BookingDialog extends JDialog {
             }
         }
 
-        Mietvertrag vertrag = bookingController.buchungErstellen(
+        if (isDraftMode) {
+            if (bookingController.draftBuchungFortsetzen(draftVertrag)) {
+                JOptionPane.showMessageDialog(this,
+                    String.format("Buchung erfolgreich fortgesetzt!\n\nMietnummer: %s\nGesamtpreis: %.2f €",
+                        draftVertrag.getMietnummer(), draftVertrag.getGesamtPreis()),
+                    "Buchung erfolgreich",
+                    JOptionPane.INFORMATION_MESSAGE);
+                dispose();
+            } else {
+                JOptionPane.showMessageDialog(this,
+                    "Buchung konnte nicht fortgesetzt werden. Das Fahrzeug ist nicht verfügbar.",
+                    "Fehler",
+                    JOptionPane.ERROR_MESSAGE);
+            }
+        } else {
+            Mietvertrag vertrag = bookingController.buchungErstellen(
+                authController.getCurrentKunde(),
+                fahrzeug,
+                startDatum,
+                endDatum,
+                optionen
+            );
+
+            if (vertrag != null) {
+                JOptionPane.showMessageDialog(this,
+                    String.format("Buchung erfolgreich!\n\nMietnummer: %s\nGesamtpreis: %.2f €",
+                        vertrag.getMietnummer(), vertrag.getGesamtPreis()),
+                    "Buchung erfolgreich",
+                    JOptionPane.INFORMATION_MESSAGE);
+                dispose();
+            } else {
+                JOptionPane.showMessageDialog(this,
+                    "Buchung konnte nicht erstellt werden. Bitte versuchen Sie es erneut.",
+                    "Fehler",
+                    JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    }
+
+    /**
+     * Speichert die Buchung als Entwurf.
+     */
+    private void entwurfSpeichern() {
+        if (startDatum == null || endDatum == null) {
+            JOptionPane.showMessageDialog(this,
+                "Bitte gültigen Zeitraum wählen.",
+                "Zeitraum prüfen",
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        List<Zusatzoption> optionen = new ArrayList<>();
+        for (Integer index : ausgewaehlteOptionen) {
+            if (index < verfuegbareOptionen.size()) {
+                optionen.add(verfuegbareOptionen.get(index));
+            }
+        }
+
+        Mietvertrag vertrag = bookingController.buchungAlsEntwurfSpeichern(
             authController.getCurrentKunde(),
             fahrzeug,
             startDatum,
@@ -350,14 +491,14 @@ public class BookingDialog extends JDialog {
 
         if (vertrag != null) {
             JOptionPane.showMessageDialog(this,
-                String.format("Buchung erfolgreich!\n\nMietnummer: %s\nGesamtpreis: %.2f €",
+                String.format("Entwurf erfolgreich gespeichert!\n\nMietnummer: %s\nGesamtpreis: %.2f €\n\nSie können die Buchung später unter \"Meine Buchungen\" fortsetzen.",
                     vertrag.getMietnummer(), vertrag.getGesamtPreis()),
-                "Buchung erfolgreich",
+                "Entwurf gespeichert",
                 JOptionPane.INFORMATION_MESSAGE);
             dispose();
         } else {
             JOptionPane.showMessageDialog(this,
-                "Buchung konnte nicht erstellt werden. Bitte versuchen Sie es erneut.",
+                "Entwurf konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.",
                 "Fehler",
                 JOptionPane.ERROR_MESSAGE);
         }
@@ -369,14 +510,52 @@ public class BookingDialog extends JDialog {
     public void setZeitraum(LocalDate start, LocalDate end) {
         this.startDatum = start;
         this.endDatum = end;
-        
+
         if (start != null) {
             startDatumLabel.setText("Startdatum: " + start.format(DATE_FORMATTER));
         }
         if (end != null) {
             endDatumLabel.setText("Enddatum: " + end.format(DATE_FORMATTER));
         }
-        
+
         updatePreis();
+    }
+
+    /**
+     * Öffnet einen Dialog zum Fortsetzen eines Entwurfs-Vertrags.
+     *
+     * @param parent Das übergeordnete Fenster
+     * @param system CarRentalSystem-Instanz
+     * @param auth AuthController-Instanz
+     * @param controller BookingController-Instanz
+     * @param draft Der Entwurf-Vertrag
+     * @return Der Buchungsdialog oder null bei Fehler
+     */
+    public static BookingDialog showDraftDialog(JFrame parent, CarRentalSystem system,
+                                                  AuthController auth, BookingController controller,
+                                                  Mietvertrag draft) {
+        if (draft == null || draft.getFahrzeug() == null) {
+            return null;
+        }
+
+        try {
+            Fahrzeug fahrzeug = system.getFahrzeugDao().findById(draft.getFahrzeug().getId()).orElse(null);
+            if (fahrzeug == null) {
+                JOptionPane.showMessageDialog(parent,
+                    "Fahrzeug des Entwurfs konnte nicht gefunden werden.",
+                    "Fehler",
+                    JOptionPane.ERROR_MESSAGE);
+                return null;
+            }
+
+            BookingDialog dialog = new BookingDialog(parent, system, auth, controller, fahrzeug, draft);
+            return dialog;
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(parent,
+                "Fehler beim Laden des Entwurfs: " + e.getMessage(),
+                "Fehler",
+                JOptionPane.ERROR_MESSAGE);
+            return null;
+        }
     }
 }

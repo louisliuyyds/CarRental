@@ -250,6 +250,89 @@ public class BookingController {
     }
 
     /**
+     * Speichert eine Buchung als Entwurf (ANGELEGT Status).
+     * Der Fahrzeugzustand wird nicht geändert.
+     *
+     * @param kunde Der Kunde
+     * @param fahrzeug Das zu mietende Fahrzeug
+     * @param startDatum Startdatum der Miete
+     * @param endDatum Enddatum der Miete
+     * @param zusatzoptionen Liste der gewünschten Zusatzoptionen
+     * @return Der erstellte Mietvertrag oder null bei Fehler
+     */
+    public Mietvertrag buchungAlsEntwurfSpeichern(Kunde kunde, Fahrzeug fahrzeug,
+                                                   LocalDate startDatum, LocalDate endDatum,
+                                                   List<Zusatzoption> zusatzoptionen) {
+        if (kunde == null || fahrzeug == null || startDatum == null || endDatum == null) {
+            System.err.println("Ungültige Parameter für Entwurf-Buchung.");
+            return null;
+        }
+
+        try {
+            Mietvertrag vertrag = new Mietvertrag(kunde, fahrzeug, startDatum, endDatum);
+
+            vertrag.setMietnummer(generateMietnummer());
+            vertrag.setStatus(VertragsStatus.ANGELEGT);
+
+            if (zusatzoptionen != null && !zusatzoptionen.isEmpty()) {
+                for (Zusatzoption option : zusatzoptionen) {
+                    vertrag.addZusatzoption(option);
+                }
+            }
+
+            double preis = calculateGesamtpreis(vertrag);
+            vertrag.setGesamtPreis(preis);
+
+            vertrag = system.getMietvertragDao().create(vertrag);
+
+            System.out.println("Buchung als Entwurf gespeichert: " + vertrag.getMietnummer());
+            return vertrag;
+
+        } catch (SQLException e) {
+            System.err.println("Fehler beim Speichern des Entwurfs: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Fortsetzt eine Entwurfs-Buchung und macht sie zu einer echten Buchung.
+     *
+     * @param vertrag Der Entwurf-Vertrag
+     * @return true bei Erfolg
+     */
+    public boolean draftBuchungFortsetzen(Mietvertrag vertrag) {
+        if (vertrag == null || vertrag.getStatus() != VertragsStatus.ANGELEGT) {
+            return false;
+        }
+
+        try {
+            if (!isFahrzeugVerfuegbar(vertrag.getFahrzeug(), vertrag.getStartDatum(), vertrag.getEndDatum())) {
+                System.err.println("Fahrzeug ist im gewählten Zeitraum nicht verfügbar.");
+                return false;
+            }
+
+            LocalDate heute = LocalDate.now();
+            if (!vertrag.getStartDatum().isAfter(heute)) {
+                vertrag.setStatus(VertragsStatus.LAUFEND);
+            } else {
+                vertrag.setStatus(VertragsStatus.BESTAETIGT);
+            }
+
+            vertrag.getFahrzeug().setZustand(FahrzeugZustand.VERMIETET);
+            system.getFahrzeugDao().updateStatusAndKilometerstand(vertrag.getFahrzeug());
+
+            system.getMietvertragDao().update(vertrag);
+
+            System.out.println("Entwurf-Buchung fortgesetzt: " + vertrag.getMietnummer());
+            return true;
+
+        } catch (SQLException e) {
+            System.err.println("Fehler beim Fortsetzen des Entwurfs: " + e.getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Storniert einen Mietvertrag.
      * 
      * @param vertrag Der zu stornierende Vertrag

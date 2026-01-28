@@ -78,7 +78,7 @@ java -jar target/car-rental-system-jar-with-dependencies.jar
 
 ```bash
 # 1. Repository klonen
-git clone https://github.com/dein-benutzer/CarRental.git
+git clone https://github.com/louisliuyyds/CarRental.git
 cd CarRental
 
 # 2. Datenbankkonfiguration erstellen

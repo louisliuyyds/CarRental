@@ -26,6 +26,8 @@ public class MitarbeiterDashboard extends JPanel {
     private JTable fahrzeugTable;
     private DefaultTableModel vertragTableModel;
     private JTable vertragTable;
+    private DefaultTableModel kundenTableModel;
+    private JTable kundenTable;
     private FahrzeugPanel fahrzeugPanel;
     private final com.carrental.controller.BookingController bookingController;
     
@@ -93,9 +95,14 @@ public class MitarbeiterDashboard extends JPanel {
         
         // Tab 3: Statistiken
         JPanel statistikPanel = createStatistikPanel();
-        tabbedPane.addTab("Statistiken", createStatistikIcon(), 
+        tabbedPane.addTab("Statistiken", createStatistikIcon(),
             statistikPanel, "Statistiken und Auswertungen");
-        
+
+        // Tab 4: Nutzerverwaltung
+        JPanel nutzerverwaltungPanel = createNutzerverwaltungPanel();
+        tabbedPane.addTab("Nutzerverwaltung", createUserIcon(),
+            nutzerverwaltungPanel, "Benutzerverwaltung - Kunden verwalten");
+
         add(tabbedPane, BorderLayout.CENTER);
     }
 
@@ -247,7 +254,14 @@ public class MitarbeiterDashboard extends JPanel {
         panel.add(verfuegbareKarte);
         panel.add(Box.createVerticalStrut(15));
 
-        panel.add(createStatistikKarte("Registrierte Kunden", "0", new Color(155, 89, 182)));
+        JPanel kundenKarte = createClickableStatistikKarte("Registrierte Kunden", "0", new Color(155, 89, 182));
+        kundenKarte.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                tabbedPane.setSelectedIndex(3);
+            }
+        });
+        panel.add(kundenKarte);
         panel.add(Box.createVerticalGlue());
 
         // Aktualisieren-Button
@@ -256,6 +270,52 @@ public class MitarbeiterDashboard extends JPanel {
         refreshButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         refreshButton.addActionListener(e -> loadStatistiken());
         panel.add(refreshButton);
+
+        return panel;
+    }
+
+    /**
+     * Erstellt das Nutzerverwaltungs-Panel.
+     */
+    private JPanel createNutzerverwaltungPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        // Toolbar
+        JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT));
+
+        JButton refreshButton = new JButton("Aktualisieren");
+        refreshButton.setFont(new Font("Arial", Font.BOLD, 16));
+        refreshButton.addActionListener(e -> loadKunden());
+        toolbar.add(refreshButton);
+
+        JButton detailsButton = new JButton("Details anzeigen");
+        detailsButton.setFont(new Font("Arial", Font.BOLD, 16));
+        detailsButton.addActionListener(e -> showKundeDetails());
+        toolbar.add(detailsButton);
+
+        panel.add(toolbar, BorderLayout.NORTH);
+
+        // Tabelle
+        String[] columnNames = {"ID", "Kundennummer", "Vorname", "Nachname", "Email",
+                                "Straße", "Hausnummer", "PLZ", "Ort", "Geburtstag",
+                                "Führerschein", "Aktiv"};
+        kundenTableModel = new DefaultTableModel(columnNames, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        kundenTable = new JTable(kundenTableModel);
+        kundenTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        kundenTable.getTableHeader().setReorderingAllowed(false);
+        kundenTable.setRowHeight(35);
+        kundenTable.setFont(new Font("Arial", Font.PLAIN, 14));
+        kundenTable.getTableHeader().setFont(new Font("Arial", Font.BOLD, 14));
+
+        JScrollPane scrollPane = new JScrollPane(kundenTable);
+        panel.add(scrollPane, BorderLayout.CENTER);
 
         return panel;
     }
@@ -308,7 +368,89 @@ public class MitarbeiterDashboard extends JPanel {
             fahrzeugPanel.refreshData();
         }
         loadVertraege();
+        loadKunden();
         loadStatistiken();
+    }
+
+    /**
+     * Lädt die Kundenliste.
+     */
+    private void loadKunden() {
+        kundenTableModel.setRowCount(0);
+
+        try {
+            List<Kunde> kunden = system.getKundeDao().findAll();
+
+            for (Kunde k : kunden) {
+                Object[] row = {
+                    k.getId(),
+                    k.getKundennummer(),
+                    k.getVorname(),
+                    k.getNachname(),
+                    k.getEmail(),
+                    k.getStrasse(),
+                    k.getHausnummer(),
+                    k.getPlz(),
+                    k.getOrt(),
+                    k.getGeburtstag(),
+                    k.getFuehrerscheinNummer(),
+                    k.isIstAktiv() ? "Ja" : "Nein"
+                };
+                kundenTableModel.addRow(row);
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this,
+                "Fehler beim Laden der Kunden: " + e.getMessage(),
+                "Fehler",
+                JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    /**
+     * Zeigt Details eines Kunden.
+     */
+    private void showKundeDetails() {
+        int selectedRow = kundenTable.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this,
+                "Bitte wählen Sie einen Kunden aus.",
+                "Keine Auswahl",
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        int id = (int) kundenTableModel.getValueAt(selectedRow, 0);
+
+        try {
+            Optional<Kunde> kundeOpt = system.getKundeDao().findById(id);
+
+            if (kundeOpt.isPresent()) {
+                Kunde kunde = kundeOpt.get();
+                StringBuilder details = new StringBuilder();
+                details.append("Kunden-ID: ").append(kunde.getId()).append("\n");
+                details.append("Kundennummer: ").append(kunde.getKundennummer()).append("\n");
+                details.append("Name: ").append(kunde.getVorname()).append(" ").append(kunde.getNachname()).append("\n");
+                details.append("Email: ").append(kunde.getEmail()).append("\n");
+                details.append("\nAdresse:\n");
+                details.append("  Straße:     ").append(kunde.getStrasse()).append("\n");
+                details.append("  Hausnummer: ").append(kunde.getHausnummer()).append("\n");
+                details.append("  PLZ:        ").append(kunde.getPlz()).append("\n");
+                details.append("  Ort:        ").append(kunde.getOrt()).append("\n");
+                details.append("\nGeburtstag:     ").append(kunde.getGeburtstag()).append("\n");
+                details.append("Führerschein:  ").append(kunde.getFuehrerscheinNummer()).append("\n");
+                details.append("Konto aktiv:    ").append(kunde.isIstAktiv() ? "Ja" : "Nein").append("\n");
+
+                JOptionPane.showMessageDialog(this,
+                    details.toString(),
+                    "Kundendetails",
+                    JOptionPane.INFORMATION_MESSAGE);
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this,
+                "Fehler beim Laden der Details: " + e.getMessage(),
+                "Fehler",
+                JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     /**
@@ -472,38 +614,81 @@ public class MitarbeiterDashboard extends JPanel {
 
             if (vertragOpt.isPresent()) {
                 Mietvertrag vertrag = vertragOpt.get();
+
+                JDialog dialog = new JDialog((JFrame) SwingUtilities.getWindowAncestor(this),
+                    "Vertragsdetails", true);
+                dialog.setLayout(new BorderLayout(20, 20));
+                dialog.setSize(1000, 800);
+                dialog.setLocationRelativeTo(this);
+
+                JPanel contentPanel = new JPanel();
+                contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+                contentPanel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
+
                 StringBuilder details = new StringBuilder();
-                details.append("Kunden-ID: ").append(vertrag.getKunde().getId()).append("\n");
-                details.append("Kunde: ").append(vertrag.getKunde().getVorname())
-                       .append(" ").append(vertrag.getKunde().getNachname()).append("\n");
-                details.append("\nFahrzeug:\n");
-                details.append("  Kennzeichen: ").append(vertrag.getFahrzeug().getKennzeichen()).append("\n");
+                details.append("<html><style>body{font-family:Arial,sans-serif;}</style>");
+
+                details.append("<h1 style='margin-bottom:20px;'>Vertragsnummer: ").append(vertrag.getMietnummer()).append("</h1>");
+
+                details.append("<h2 style='margin-top:20px; margin-bottom:10px;'>Kunde</h2>");
+                details.append("<p style='margin:5px 0;'>Kunden-ID:     <b>").append(String.format("%20s", vertrag.getKunde().getId())).append("</b></p>");
+                details.append("<p style='margin:5px 0;'>Vorname:       <b>").append(String.format("%20s", vertrag.getKunde().getVorname())).append("</b></p>");
+                details.append("<p style='margin:5px 0;'>Nachname:      <b>").append(String.format("%20s", vertrag.getKunde().getNachname())).append("</b></p>");
+
+                details.append("<h2 style='margin-top:20px; margin-bottom:10px;'>Fahrzeug</h2>");
+                details.append("<p style='margin:5px 0;'>Kennzeichen:  <b>").append(String.format("%15s", vertrag.getFahrzeug().getKennzeichen())).append("</b></p>");
                 if (vertrag.getFahrzeug().getFahrzeugtyp() != null) {
-                    details.append("  Hersteller: ").append(vertrag.getFahrzeug().getFahrzeugtyp().getHersteller()).append("\n");
-                    details.append("  Modell: ").append(vertrag.getFahrzeug().getFahrzeugtyp().getModellBezeichnung()).append("\n");
-                    details.append("  Kategorie: ").append(vertrag.getFahrzeug().getFahrzeugtyp().getKategorie()).append("\n");
-                    details.append("  Antriebsart: ").append(vertrag.getFahrzeug().getFahrzeugtyp().getAntriebsart()).append("\n");
-                    details.append("  Sitzplätze: ").append(vertrag.getFahrzeug().getFahrzeugtyp().getSitzplaetze()).append("\n");
-                    details.append("\nTagespreis: ").append(String.format("%.2f €", vertrag.getFahrzeug().getFahrzeugtyp().getStandardTagesPreis())).append("\n");
+                    com.carrental.model.Fahrzeugtyp typ = vertrag.getFahrzeug().getFahrzeugtyp();
+                    details.append("<p style='margin:5px 0;'>Hersteller:   <b>").append(String.format("%15s", typ.getHersteller())).append("</b></p>");
+                    details.append("<p style='margin:5px 0;'>Modell:       <b>").append(String.format("%15s", typ.getModellBezeichnung())).append("</b></p>");
+                    details.append("<p style='margin:5px 0;'>Kategorie:    <b>").append(String.format("%15s", typ.getKategorie())).append("</b></p>");
+                    details.append("<p style='margin:5px 0;'>Antriebsart:  <b>").append(String.format("%15s", typ.getAntriebsart())).append("</b></p>");
+                    details.append("<p style='margin:5px 0;'>Sitzplätze:   <b>").append(String.format("%15s", typ.getSitzplaetze())).append("</b></p>");
+                    details.append("<p style='margin:5px 0;'>Tagespreis:   <b>").append(String.format("%15s", String.format("%.2f €", typ.getStandardTagesPreis()))).append("</b></p>");
                 }
-                details.append("\nZeitraum: ").append(vertrag.getStartDatum())
-                       .append(" bis ").append(vertrag.getEndDatum()).append("\n");
-                details.append("Status: ").append(vertrag.getStatus()).append("\n");
 
+                details.append("<h2 style='margin-top:20px; margin-bottom:10px;'>Mietzeitraum</h2>");
+                details.append("<p style='margin:5px 0;'>Startdatum:   <b>").append(String.format("%15s", vertrag.getStartDatum())).append("</b></p>");
+                details.append("<p style='margin:5px 0;'>Enddatum:     <b>").append(String.format("%15s", vertrag.getEndDatum())).append("</b></p>");
+
+                details.append("<h2 style='margin-top:20px; margin-bottom:10px;'>Zusatzoptionen</h2>");
                 if (!vertrag.getZusatzoptionen().isEmpty()) {
-                    details.append("\nZusatzoptionen:\n");
                     for (Zusatzoption opt : vertrag.getZusatzoptionen()) {
-                        details.append("  - ").append(opt.getBezeichnung())
-                               .append(" (").append(String.format("%.2f €", opt.getAufpreis())).append(")\n");
+                        details.append("<p style='margin:5px 0;'>- ").append(opt.getBezeichnung())
+                               .append(" (").append(String.format("%.2f €", opt.getAufpreis())).append(")</p>");
                     }
+                } else {
+                    details.append("<p style='margin:5px 0;'>Keine Zusatzoptionen gewählt</p>");
                 }
 
-                details.append("\nGesamtpreis: ").append(String.format("%.2f €", vertrag.getGesamtPreis())).append("\n");
+                details.append("<h2 style='margin-top:20px; margin-bottom:10px;'>Status</h2>");
+                details.append("<p style='margin:5px 0; font-size: 24px;'>").append(vertrag.getStatus()).append("</p>");
 
-                JOptionPane.showMessageDialog(this,
-                    details.toString(),
-                    "Vertragsdetails",
-                    JOptionPane.INFORMATION_MESSAGE);
+                details.append("<h1 style='margin-top:30px; margin-bottom:10px; color: #462048;'>Gesamtpreis: ").append(String.format("%.2f €", vertrag.getGesamtPreis())).append("</h1>");
+
+                details.append("</html>");
+
+                JLabel label = new JLabel(details.toString());
+                label.setFont(DETAIL_VALUE_FONT);
+
+                JScrollPane scrollPane = new JScrollPane(label);
+                scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+                scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+
+                contentPanel.add(scrollPane);
+
+                JButton closeButton = new JButton("Schließen");
+                closeButton.setFont(new Font("Arial", Font.BOLD, 18));
+                closeButton.setPreferredSize(new Dimension(150, 50));
+                closeButton.addActionListener(e -> dialog.dispose());
+
+                JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+                buttonPanel.add(closeButton);
+
+                dialog.add(contentPanel, BorderLayout.CENTER);
+                dialog.add(buttonPanel, BorderLayout.SOUTH);
+
+                dialog.setVisible(true);
             }
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(this,
@@ -515,6 +700,9 @@ public class MitarbeiterDashboard extends JPanel {
 
     private static final Font GROSSE_SCHRIFT = new Font("Arial", Font.PLAIN, 18);
     private static final Font GROSSE_LABEL_SCHRIFT = new Font("Arial", Font.BOLD, 20);
+    private static final Font DETAIL_TITEL_FONT = new Font("Arial", Font.BOLD, 36);
+    private static final Font DETAIL_LABEL_FONT = new Font("Arial", Font.PLAIN, 32);
+    private static final Font DETAIL_VALUE_FONT = new Font("Arial", Font.PLAIN, 32);
     
     /**
      * Filtert Verträge nach Status.
@@ -799,6 +987,13 @@ public class MitarbeiterDashboard extends JPanel {
      */
     private Icon createStatistikIcon() {
         return UIManager.getIcon("FileView.floppyDriveIcon");
+    }
+
+    /**
+     * Benutzer-Icon.
+     */
+    private Icon createUserIcon() {
+        return UIManager.getIcon("FileView.fileIcon");
     }
 
     /**

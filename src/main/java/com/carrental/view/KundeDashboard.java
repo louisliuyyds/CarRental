@@ -199,26 +199,34 @@ public class KundeDashboard extends JPanel {
         
         // Button-Panel
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 15));
-        
+
         Font grosserButtonFont = new Font("Arial", Font.BOLD, 18);
         Dimension grosserButtonSize = new Dimension(180, 50);
-        
+
         JButton refreshButton = new JButton("Aktualisieren");
         refreshButton.setFont(grosserButtonFont);
         refreshButton.setPreferredSize(grosserButtonSize);
         refreshButton.addActionListener(e -> loadBuchungen());
         buttonPanel.add(refreshButton);
-        
-        JButton stornButton = new JButton("Buchung stornieren");
+
+        JButton fortsetzenButton = new JButton("Buchung fortsetzen");
+        fortsetzenButton.setFont(grosserButtonFont);
+        fortsetzenButton.setPreferredSize(grosserButtonSize);
+        fortsetzenButton.setBackground(new Color(70, 130, 180));
+        fortsetzenButton.setForeground(Color.BLACK);
+        fortsetzenButton.addActionListener(e -> fortsetzenBuchung());
+        buttonPanel.add(fortsetzenButton);
+
+        JButton stornButton = new JButton("Stornieren");
         stornButton.setFont(grosserButtonFont);
         stornButton.setPreferredSize(grosserButtonSize);
         stornButton.setBackground(new Color(255, 99, 71));
         stornButton.setForeground(Color.BLACK);
         stornButton.addActionListener(e -> storniereBuchung());
         buttonPanel.add(stornButton);
-        
+
         panel.add(buttonPanel, BorderLayout.SOUTH);
-        
+
         return panel;
     }
 
@@ -561,18 +569,28 @@ public class KundeDashboard extends JPanel {
                 JOptionPane.WARNING_MESSAGE);
             return;
         }
-        
+
         String mietnummer = (String) buchungTableModel.getValueAt(selectedRow, 0);
-        
+
         int confirm = JOptionPane.showConfirmDialog(this,
             "Möchten Sie die Buchung " + mietnummer + " wirklich stornieren?",
             "Buchung stornieren",
             JOptionPane.YES_NO_OPTION);
-        
+
         if (confirm == JOptionPane.YES_OPTION) {
             try {
                 Mietvertrag vertrag = system.getMietvertragDao().findByMietnummer(mietnummer).orElse(null);
                 if (vertrag != null) {
+                    com.carrental.model.VertragsStatus status = vertrag.getStatus();
+                    if (status == com.carrental.model.VertragsStatus.LAUFEND ||
+                        status == com.carrental.model.VertragsStatus.BESTAETIGT) {
+                        JOptionPane.showMessageDialog(this,
+                            "Buchung kann nicht storniert werden.\nBitte wenden Sie sich für Änderungen an den Mitarbeiter.",
+                            "Stornierung nicht möglich",
+                            JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+
                     boolean success = bookingController.buchungStornieren(vertrag);
                     if (success) {
                         JOptionPane.showMessageDialog(this,
@@ -588,6 +606,55 @@ public class KundeDashboard extends JPanel {
                     "Fehler",
                     JOptionPane.ERROR_MESSAGE);
             }
+        }
+    }
+
+    /**
+     * Setzt die ausgewählte Buchung (Entwurf) fort.
+     */
+    private void fortsetzenBuchung() {
+        int selectedRow = buchungTable.getSelectedRow();
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(this,
+                "Bitte wählen Sie eine Buchung aus der Liste.",
+                "Keine Buchung ausgewählt",
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        String mietnummer = (String) buchungTableModel.getValueAt(selectedRow, 0);
+
+        try {
+            Mietvertrag vertrag = system.getMietvertragDao().findByMietnummer(mietnummer).orElse(null);
+            if (vertrag == null) {
+                JOptionPane.showMessageDialog(this,
+                    "Buchung nicht gefunden.",
+                    "Fehler",
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            if (vertrag.getStatus() != com.carrental.model.VertragsStatus.ANGELEGT) {
+                JOptionPane.showMessageDialog(this,
+                    "Nur Entwürfe können fortgesetzt werden.",
+                    "Kein Entwurf",
+                    JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+
+            BookingDialog dialog = BookingDialog.showDraftDialog(mainFrame, system,
+                authController, bookingController, vertrag);
+
+            if (dialog != null) {
+                dialog.setVisible(true);
+                loadData();
+            }
+
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this,
+                "Fehler beim Laden der Buchung: " + e.getMessage(),
+                "Fehler",
+                JOptionPane.ERROR_MESSAGE);
         }
     }
 
