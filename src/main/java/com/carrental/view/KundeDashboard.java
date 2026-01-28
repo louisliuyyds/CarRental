@@ -861,8 +861,8 @@ public class KundeDashboard extends JPanel {
         gbc.weightx = 1.0;
         JPasswordField newPasswordField = new JPasswordField(40);
         newPasswordField.setFont(fieldFont);
-        newPasswordField.setMinimumSize(new Dimension(300, 25));
-        newPasswordField.setPreferredSize(new Dimension(350, 30));
+        newPasswordField.setMinimumSize(new Dimension(250, 25));
+        newPasswordField.setPreferredSize(new Dimension(280, 30));
         dialog.add(newPasswordField, gbc);
 
         row++;
@@ -876,8 +876,8 @@ public class KundeDashboard extends JPanel {
         gbc.gridx = 1;
         JPasswordField confirmPasswordField = new JPasswordField(40);
         confirmPasswordField.setFont(fieldFont);
-        confirmPasswordField.setMinimumSize(new Dimension(300, 25));
-        confirmPasswordField.setPreferredSize(new Dimension(350, 30));
+        confirmPasswordField.setMinimumSize(new Dimension(250, 25));
+        confirmPasswordField.setPreferredSize(new Dimension(280, 30));
         dialog.add(confirmPasswordField, gbc);
 
         row++;
