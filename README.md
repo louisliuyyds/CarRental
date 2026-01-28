@@ -60,7 +60,7 @@ Ein vollständiges **Java-basiertes Autovermietungssystem** mit grafischer Benut
 
 ```powershell
 # 1. Repository klonen
-git clone https://github.com/dein-benutzer/CarRental.git
+git clone https://github.com/louisliuyyds/CarRental.git
 cd CarRental
 
 # 2. Datenbankkonfiguration erstellen
@@ -124,7 +124,7 @@ java -version
 
 ```powershell
 # Repository klonen (oder als ZIP herunterladen)
-git clone https://github.com/dein-benutzer/CarRental.git
+git clone https://github.com/louisliuyyds/CarRental.git
 cd CarRental
 
 # Datenbankkonfiguration einrichten

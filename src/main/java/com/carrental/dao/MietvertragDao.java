@@ -479,11 +479,63 @@ public class MietvertragDao implements GenericDao<Mietvertrag> {
                 Fahrzeug fahrzeug = new Fahrzeug();
                 fahrzeug.setId(rs.getInt("Fahrzeug_ID"));
                 fahrzeug.setKennzeichen(kennzeichen);
-                // Weitere Fahrzeug-Felder laden...
+
+                // Zustand laden
+                String zustandStr = rs.getString("Zustand");
+                if (zustandStr != null) {
+                    try {
+                        fahrzeug.setZustand(FahrzeugZustand.valueOf(zustandStr));
+                    } catch (IllegalArgumentException e) {
+                        System.err.println("WARNUNG: Ungültiger Fahrzeugzustand in Datenbank: " + zustandStr);
+                    }
+                }
+
+                // Kilometerstand laden
+                int kilometerstand = rs.getInt("AktuellerKilometerstand");
+                fahrzeug.setAktuellerKilometerstand(kilometerstand);
+
+                // Tuev-Datum laden
+                Date tuevDatum = rs.getDate("TuevDatum");
+                if (tuevDatum != null) {
+                    fahrzeug.setTuevDatum(tuevDatum.toLocalDate());
+                }
+
+                // Fahrzeugtyp laden
+                try {
+                    int fahrzeugtypId = rs.getInt("Fahrzeugtyp_ID");
+                    if (!rs.wasNull() && fahrzeugtypId > 0) {
+                        Fahrzeugtyp typ = new Fahrzeugtyp();
+                        typ.setId(fahrzeugtypId);
+                        typ.setHersteller(rs.getString("Hersteller"));
+                        typ.setModellBezeichnung(rs.getString("ModellBezeichnung"));
+                        typ.setKategorie(rs.getString("Kategorie"));
+                        typ.setStandardTagesPreis(rs.getDouble("StandardTagesPreis"));
+                        typ.setSitzplaetze(rs.getInt("Sitzplaetze"));
+
+                        String antriebsartStr = rs.getString("Antriebsart");
+                        if (antriebsartStr != null) {
+                            try {
+                                typ.setAntriebsart(Antriebsart.valueOf(antriebsartStr));
+                            } catch (IllegalArgumentException e) {
+                                System.err.println("WARNUNG: Ungültige Antriebsart in Datenbank: " + antriebsartStr);
+                            }
+                        }
+
+                        typ.setReichweiteKm(rs.getInt("ReichweiteKm"));
+                        typ.setBeschreibung(rs.getString("Beschreibung"));
+
+                        fahrzeug.setFahrzeugtyp(typ);
+                    }
+                } catch (SQLException e) {
+                    // Fahrzeugtyp-Spalten nicht im ResultSet
+                    System.err.println("WARNUNG: Fahrzeugtyp konnte nicht geladen werden: " + e.getMessage());
+                }
+
                 vertrag.setFahrzeug(fahrzeug);
             }
         } catch (SQLException e) {
             // Fahrzeug nicht im ResultSet
+            System.err.println("WARNUNG: Fahrzeug konnte nicht geladen werden: " + e.getMessage());
         }
         
         return vertrag;
