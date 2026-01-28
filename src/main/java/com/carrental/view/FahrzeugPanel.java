@@ -79,13 +79,13 @@ public class FahrzeugPanel extends JPanel {
         
         // Toolbar
         JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
-        
+
         JButton refreshButton = new JButton("Aktualisieren");
         refreshButton.setFont(GROSSE_BUTTON_SCHRIFT);
         refreshButton.setPreferredSize(GROSSE_BUTTON_GROESSE);
         refreshButton.addActionListener(e -> loadFahrzeuge());
         toolbar.add(refreshButton);
-        
+
         JButton addButton = new JButton("Hinzufügen");
         addButton.setFont(GROSSE_BUTTON_SCHRIFT);
         addButton.setPreferredSize(GROSSE_BUTTON_GROESSE);
@@ -93,24 +93,30 @@ public class FahrzeugPanel extends JPanel {
         addButton.setForeground(Color.BLACK);
         addButton.addActionListener(e -> addFahrzeug());
         toolbar.add(addButton);
-        
+
         editFahrzeugButton = new JButton("Bearbeiten");
         editFahrzeugButton.setFont(GROSSE_BUTTON_SCHRIFT);
         editFahrzeugButton.setPreferredSize(GROSSE_BUTTON_GROESSE);
         editFahrzeugButton.addActionListener(e -> editFahrzeug());
         toolbar.add(editFahrzeugButton);
-        
+
         deleteFahrzeugButton = new JButton("Löschen");
         deleteFahrzeugButton.setFont(GROSSE_BUTTON_SCHRIFT);
         deleteFahrzeugButton.setPreferredSize(GROSSE_BUTTON_GROESSE);
         deleteFahrzeugButton.addActionListener(e -> deleteFahrzeug());
         toolbar.add(deleteFahrzeugButton);
-        
+
         zustandFahrzeugButton = new JButton("Zustand ändern");
         zustandFahrzeugButton.setFont(GROSSE_BUTTON_SCHRIFT);
         zustandFahrzeugButton.setPreferredSize(GROSSE_BUTTON_GROESSE);
         zustandFahrzeugButton.addActionListener(e -> changeZustand());
         toolbar.add(zustandFahrzeugButton);
+
+        JButton filterButton = new JButton("Filter");
+        filterButton.setFont(GROSSE_BUTTON_SCHRIFT);
+        filterButton.setPreferredSize(GROSSE_BUTTON_GROESSE);
+        filterButton.addActionListener(e -> showFilterDialog());
+        toolbar.add(filterButton);
         
         panel.add(toolbar, BorderLayout.NORTH);
         
@@ -238,6 +244,54 @@ public class FahrzeugPanel extends JPanel {
      */
     public void refreshFahrzeuge() {
         loadFahrzeuge();
+    }
+
+    /**
+     * Selects the Fahrzeuge tab.
+     */
+    public void selectFahrzeugeTab() {
+        if (tabbedPane != null) {
+            tabbedPane.setSelectedIndex(0);
+        }
+    }
+
+    /**
+     * Filters vehicles to show only available ones.
+     */
+    public void filterByVerfuegbar() {
+        loadFahrzeugeByFilter(FahrzeugZustand.VERFUEGBAR);
+    }
+
+    /**
+     * Loads vehicles filtered by a specific state.
+     */
+    private void loadFahrzeugeByFilter(FahrzeugZustand filterZustand) {
+        fahrzeugTableModel.setRowCount(0);
+
+        try {
+            List<Fahrzeug> fahrzeuge = system.getFahrzeugDao().findAll();
+
+            for (Fahrzeug f : fahrzeuge) {
+                if (f.getZustand() == filterZustand) {
+                    Object[] row = {
+                        f.getId(),
+                        f.getKennzeichen(),
+                        f.getFahrzeugtyp() != null ? f.getFahrzeugtyp().getHersteller() : "-",
+                        f.getFahrzeugtyp() != null ? f.getFahrzeugtyp().getModellBezeichnung() : "-",
+                        f.getFahrzeugtyp() != null ? f.getFahrzeugtyp().getKategorie() : "-",
+                        f.getZustand(),
+                        f.getFahrzeugtyp() != null ?
+                            String.format("%.2f €", f.getFahrzeugtyp().getStandardTagesPreis()) : "-"
+                    };
+                    fahrzeugTableModel.addRow(row);
+                }
+            }
+        } catch (SQLException e) {
+            JOptionPane.showMessageDialog(this,
+                "Fehler beim Laden der Fahrzeuge: " + e.getMessage(),
+                "Fehler",
+                JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     /**
@@ -611,17 +665,17 @@ public class FahrzeugPanel extends JPanel {
                 JOptionPane.WARNING_MESSAGE);
             return;
         }
-        
+
         int id = ((Number) fahrzeugTableModel.getValueAt(selectedRow, 0)).intValue();
-        
+
         try {
             Optional<Fahrzeug> fahrzeugOpt = system.getFahrzeugDao().findById(id);
             if (!fahrzeugOpt.isPresent()) {
                 return;
             }
-            
+
             Fahrzeug fahrzeug = fahrzeugOpt.get();
-            
+
             FahrzeugZustand neuerZustand = (FahrzeugZustand) JOptionPane.showInputDialog(this,
                 "Neuen Zustand wählen:",
                 "Zustand ändern",
@@ -629,12 +683,12 @@ public class FahrzeugPanel extends JPanel {
                 null,
                 FahrzeugZustand.values(),
                 fahrzeug.getZustand());
-            
+
             if (neuerZustand != null) {
                 fahrzeug.setZustand(neuerZustand);
                 system.getFahrzeugDao().updateStatusAndKilometerstand(fahrzeug);
                 loadFahrzeuge();
-                
+
                 JOptionPane.showMessageDialog(this,
                     "Zustand erfolgreich geändert.",
                     "Erfolg",
@@ -645,6 +699,84 @@ public class FahrzeugPanel extends JPanel {
                 "Fehler beim Ändern des Zustands: " + e.getMessage(),
                 "Fehler",
                 JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    /**
+     * Shows a filter dialog to filter vehicles by state.
+     */
+    private void showFilterDialog() {
+        JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Fahrzeuge filtern", true);
+        dialog.setLayout(new BorderLayout(20, 20));
+
+        JPanel contentPanel = new JPanel(new BorderLayout(20, 20));
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        JLabel statusLabel = new JLabel("Zustand auswählen:");
+        statusLabel.setFont(GROSSE_LABEL_SCHRIFT);
+        contentPanel.add(statusLabel, BorderLayout.NORTH);
+
+        String[] options = {"Alle", "VERFUEGBAR", "VERMIETET", "WARTUNG", "IN_REPARATUR"};
+        JList<String> statusList = new JList<>(options);
+        statusList.setFont(GROSSE_DIALOG_SCHRIFT);
+        statusList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        statusList.setSelectedIndex(0);
+        statusList.setFixedCellHeight(35);
+
+        JScrollPane listScroll = new JScrollPane(statusList);
+        listScroll.setPreferredSize(new Dimension(250, 200));
+        contentPanel.add(listScroll, BorderLayout.CENTER);
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        buttonPanel.setBackground(Color.WHITE);
+
+        Font buttonFont = new Font("Arial", Font.BOLD, 18);
+        Dimension buttonSize = new Dimension(140, 45);
+
+        JButton okButton = new JButton("OK");
+        okButton.setFont(buttonFont);
+        okButton.setPreferredSize(buttonSize);
+        okButton.addActionListener(e -> {
+            String selected = statusList.getSelectedValue();
+            dialog.dispose();
+            applyFahrzeugFilter(selected);
+        });
+        buttonPanel.add(okButton);
+
+        JButton cancelButton = new JButton("Abbrechen");
+        cancelButton.setFont(buttonFont);
+        cancelButton.setPreferredSize(buttonSize);
+        cancelButton.addActionListener(e -> dialog.dispose());
+        buttonPanel.add(cancelButton);
+
+        contentPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        dialog.add(contentPanel, BorderLayout.CENTER);
+
+        dialog.pack();
+        dialog.setSize(400, 400);
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+    }
+
+    /**
+     * Applies the selected filter to the vehicle list.
+     */
+    private void applyFahrzeugFilter(String selected) {
+        if (selected == null) return;
+
+        if (selected.equals("Alle")) {
+            loadFahrzeuge();
+        } else {
+            try {
+                FahrzeugZustand zustand = FahrzeugZustand.valueOf(selected);
+                loadFahrzeugeByFilter(zustand);
+            } catch (IllegalArgumentException e) {
+                JOptionPane.showMessageDialog(this,
+                    "Ungültiger Zustand ausgewählt.",
+                    "Fehler",
+                    JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 

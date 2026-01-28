@@ -182,7 +182,7 @@ public class MitarbeiterDashboard extends JPanel {
         panel.add(toolbar, BorderLayout.NORTH);
         
         // Tabelle
-        String[] columnNames = {"Mietnummer", "Kunde", "Fahrzeug", "Startdatum", 
+        String[] columnNames = {"Kunden-ID", "Mietnummer", "Kunde", "Fahrzeug", "Startdatum",
                                 "Enddatum", "Gesamtpreis", "Status"};
         vertragTableModel = new DefaultTableModel(columnNames, 0) {
             @Override
@@ -211,24 +211,52 @@ public class MitarbeiterDashboard extends JPanel {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        
+
         // Statistikkarten
-        panel.add(createStatistikKarte("Gesamte Fahrzeuge", "0", new Color(52, 152, 219)));
+        JPanel fahrzeugeKarte = createClickableStatistikKarte("Gesamte Fahrzeuge", "0", new Color(52, 152, 219));
+        fahrzeugeKarte.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                tabbedPane.setSelectedIndex(0);
+                fahrzeugPanel.selectFahrzeugeTab();
+            }
+        });
+        panel.add(fahrzeugeKarte);
         panel.add(Box.createVerticalStrut(15));
-        panel.add(createStatistikKarte("Aktive Verträge", "0", new Color(46, 204, 113)));
+
+        JPanel vertraegeKarte = createClickableStatistikKarte("Aktive Verträge", "0", new Color(46, 204, 113));
+        vertraegeKarte.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                tabbedPane.setSelectedIndex(1);
+                SwingUtilities.invokeLater(() -> applyAktiveVertraegeFilter());
+            }
+        });
+        panel.add(vertraegeKarte);
         panel.add(Box.createVerticalStrut(15));
-        panel.add(createStatistikKarte("Verfügbare Fahrzeuge", "0", new Color(241, 196, 15)));
+
+        JPanel verfuegbareKarte = createClickableStatistikKarte("Verfügbare Fahrzeuge", "0", new Color(241, 196, 15));
+        verfuegbareKarte.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                tabbedPane.setSelectedIndex(0);
+                fahrzeugPanel.selectFahrzeugeTab();
+                SwingUtilities.invokeLater(() -> fahrzeugPanel.filterByVerfuegbar());
+            }
+        });
+        panel.add(verfuegbareKarte);
         panel.add(Box.createVerticalStrut(15));
+
         panel.add(createStatistikKarte("Registrierte Kunden", "0", new Color(155, 89, 182)));
         panel.add(Box.createVerticalGlue());
-        
+
         // Aktualisieren-Button
         JButton refreshButton = new JButton("Statistiken aktualisieren");
         refreshButton.setFont(new Font("Arial", Font.BOLD, 16));
         refreshButton.setAlignmentX(Component.CENTER_ALIGNMENT);
         refreshButton.addActionListener(e -> loadStatistiken());
         panel.add(refreshButton);
-        
+
         return panel;
     }
 
@@ -241,19 +269,35 @@ public class MitarbeiterDashboard extends JPanel {
         karte.setBorder(BorderFactory.createLineBorder(farbe, 3));
         karte.setBackground(Color.WHITE);
         karte.setMaximumSize(new Dimension(Integer.MAX_VALUE, 140));
-        
+
         JLabel titelLabel = new JLabel(titel);
         titelLabel.setFont(new Font("Arial", Font.PLAIN, 28));
         titelLabel.setBorder(BorderFactory.createEmptyBorder(10, 15, 5, 15));
         karte.add(titelLabel, BorderLayout.NORTH);
-        
+
         JLabel wertLabel = new JLabel(wert);
         wertLabel.setFont(new Font("Arial", Font.BOLD, 56));
         wertLabel.setForeground(farbe);
         wertLabel.setBorder(BorderFactory.createEmptyBorder(5, 15, 10, 15));
         karte.add(wertLabel, BorderLayout.CENTER);
-        
+
         return karte;
+    }
+
+    /**
+     * Erstellt eine klickbare Statistikkarte.
+     */
+    private JPanel createClickableStatistikKarte(String titel, String wert, Color farbe) {
+        JPanel karte = createStatistikKarte(titel, wert, farbe);
+        karte.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        return karte;
+    }
+
+    /**
+     * Filtert aktive Verträge.
+     */
+    private void applyAktiveVertraegeFilter() {
+        applyFilter("LAUFEND");
     }
 
     /**
@@ -310,11 +354,13 @@ public class MitarbeiterDashboard extends JPanel {
             List<Mietvertrag> vertraege = system.getMietvertragDao().findAll();
             
             for (Mietvertrag v : vertraege) {
+                String kundenId = v.getKunde() != null ? String.valueOf(v.getKunde().getId()) : "-";
                 String kundenname = v.getKunde() != null ? 
                     v.getKunde().getVorname() + " " + v.getKunde().getNachname() : "-";
                 String fahrzeuginfo = v.getFahrzeug() != null ? v.getFahrzeug().getKennzeichen() : "-";
                 
                 Object[] row = {
+                    kundenId,
                     v.getMietnummer(),
                     kundenname,
                     fahrzeuginfo,
@@ -418,24 +464,32 @@ public class MitarbeiterDashboard extends JPanel {
                 JOptionPane.WARNING_MESSAGE);
             return;
         }
-        
-        String mietnummer = (String) vertragTableModel.getValueAt(selectedRow, 0);
-        
+
+        String mietnummer = (String) vertragTableModel.getValueAt(selectedRow, 1);
+
         try {
             Optional<Mietvertrag> vertragOpt = system.getMietvertragDao().findByMietnummer(mietnummer);
-            
+
             if (vertragOpt.isPresent()) {
                 Mietvertrag vertrag = vertragOpt.get();
                 StringBuilder details = new StringBuilder();
-                details.append("Mietnummer: ").append(vertrag.getMietnummer()).append("\n");
+                details.append("Kunden-ID: ").append(vertrag.getKunde().getId()).append("\n");
                 details.append("Kunde: ").append(vertrag.getKunde().getVorname())
                        .append(" ").append(vertrag.getKunde().getNachname()).append("\n");
-                details.append("Fahrzeug: ").append(vertrag.getFahrzeug().getKennzeichen()).append("\n");
-                details.append("Zeitraum: ").append(vertrag.getStartDatum())
+                details.append("\nFahrzeug:\n");
+                details.append("  Kennzeichen: ").append(vertrag.getFahrzeug().getKennzeichen()).append("\n");
+                if (vertrag.getFahrzeug().getFahrzeugtyp() != null) {
+                    details.append("  Hersteller: ").append(vertrag.getFahrzeug().getFahrzeugtyp().getHersteller()).append("\n");
+                    details.append("  Modell: ").append(vertrag.getFahrzeug().getFahrzeugtyp().getModellBezeichnung()).append("\n");
+                    details.append("  Kategorie: ").append(vertrag.getFahrzeug().getFahrzeugtyp().getKategorie()).append("\n");
+                    details.append("  Antriebsart: ").append(vertrag.getFahrzeug().getFahrzeugtyp().getAntriebsart()).append("\n");
+                    details.append("  Sitzplätze: ").append(vertrag.getFahrzeug().getFahrzeugtyp().getSitzplaetze()).append("\n");
+                    details.append("\nTagespreis: ").append(String.format("%.2f €", vertrag.getFahrzeug().getFahrzeugtyp().getStandardTagesPreis())).append("\n");
+                }
+                details.append("\nZeitraum: ").append(vertrag.getStartDatum())
                        .append(" bis ").append(vertrag.getEndDatum()).append("\n");
-                details.append("Gesamtpreis: ").append(String.format("%.2f €", vertrag.getGesamtPreis())).append("\n");
                 details.append("Status: ").append(vertrag.getStatus()).append("\n");
-                
+
                 if (!vertrag.getZusatzoptionen().isEmpty()) {
                     details.append("\nZusatzoptionen:\n");
                     for (Zusatzoption opt : vertrag.getZusatzoptionen()) {
@@ -443,7 +497,9 @@ public class MitarbeiterDashboard extends JPanel {
                                .append(" (").append(String.format("%.2f €", opt.getAufpreis())).append(")\n");
                     }
                 }
-                
+
+                details.append("\nGesamtpreis: ").append(String.format("%.2f €", vertrag.getGesamtPreis())).append("\n");
+
                 JOptionPane.showMessageDialog(this,
                     details.toString(),
                     "Vertragsdetails",
@@ -519,22 +575,24 @@ public class MitarbeiterDashboard extends JPanel {
     
     private void applyFilter(String selected) {
         if (selected == null) return;
-        
+
         if (selected.equals("Alle")) {
             loadVertraege();
         } else {
             try {
                 VertragsStatus status = VertragsStatus.valueOf(selected);
                 vertragTableModel.setRowCount(0);
-                
+
                 List<Mietvertrag> vertraege = system.getMietvertragDao().findAll();
                 for (Mietvertrag v : vertraege) {
                     if (v.getStatus() == status) {
-                        String kundenname = v.getKunde() != null ? 
+                        String kundenId = v.getKunde() != null ? String.valueOf(v.getKunde().getId()) : "-";
+                        String kundenname = v.getKunde() != null ?
                             v.getKunde().getVorname() + " " + v.getKunde().getNachname() : "-";
                         String fahrzeuginfo = v.getFahrzeug() != null ? v.getFahrzeug().getKennzeichen() : "-";
-                        
+
                         Object[] row = {
+                            kundenId,
                             v.getMietnummer(),
                             kundenname,
                             fahrzeuginfo,
