@@ -1,16 +1,22 @@
 # 🚗 CarRental - Autovermietungssystem
 
+> **Version:** 1.1.0  
+> **Letzte Aktualisierung:** Januar 2026
+
 Ein vollständiges **Java-basiertes Autovermietungssystem** mit grafischer Benutzeroberfläche (Swing), Datenbankanbindung (IBM Db2) und MVC-Architektur.
+
+---
 
 ## 📋 Inhaltsverzeichnis
 
 - [Features](#-features)
-- [Systemanforderungen](#-systemanforderungen)
-- [Schnellstart](#-schnellstart)
-- [Detaillierte Installationsanleitung](#-detaillierte-installationsanleitung)
-- [Projektstruktur](#-projektstruktur)
-- [Verwendete Technologien](#-verwendete-technologien)
-- [Lizenz](#-lizenz)
+- [系统要求](#-系统要求)
+- [快速开始](#-快速开始)
+- [详细安装指南](#-详细安装指南)
+- [项目结构](#-项目结构)
+- [使用的技术](#-使用的技术)
+- [更新历史](#-更新历史)
+- [许可证](#-许可证)
 
 ---
 
@@ -19,17 +25,27 @@ Ein vollständiges **Java-basiertes Autovermietungssystem** mit grafischer Benut
 ### Kundenfunktionen
 - ✅ Benutzerregistrierung und Login
 - ✅ Verfügbare Fahrzeuge durchsuchen
+- ✅ 车辆类别过滤（Kategorie-basiert）
 - ✅ Fahrzeuge mit Datumsauswahl reservieren
 - ✅ Zusatzoptionen hinzufügen (z.B. Kindersitz)
+- ✅ 合同草稿功能（保存为ANGELEGT状态）
+- ✅ 草稿继续预订（随时完成预订）
+- ✅ 密码修改功能（新密码 + 确认密码验证）
 - ✅ Reservierungshistorie anzeigen
+- ✅ Vertragsdetails完整显示（所有车辆信息、单日价格）
 - ✅ Reservierungen stornieren
+- ✅ 个人信息滚动浏览（Meine Daten选项卡）
 
 ### Mitarbeiterfunktionen
 - ✅ Fahrzeuge verwalten (Hinzufügen, Ändern, Löschen)
+- ✅ **按状态过滤车辆**（VERFUEGBAR, VERMIETET, WARTUNG, IN_REPARATUR）
 - ✅ Fahrzeugtypen konfigurieren
 - ✅ Mietverträge einsehen und verwalten
-- ✅ Systemstatistiken anzeigen
+- ✅ **Kunden信息管理**（Nutzerverwaltung选项卡）
+- ✅ 系统statistiken anzeigen
+- ✅ **统计卡片点击跳转**（集成导航）
 - ✅ Verfügbarkeitsmanagement
+- ✅ **车辆详细信息显示**（完整的Fahrzeugtyp数据）
 
 ### Geschäftslogik
 - 📊 **Intelligente Preisberechnung**: Tagesmiete + Zusatzoptionen + Staffelrabatte
@@ -208,8 +224,70 @@ Nach dem Datenbankschema-Import (docs/database/schema.sql) sind folgende Test-Ko
 
 ---
 
-## 📁 Projektstruktur
+## 📁 项目结构
 
+```
+CarRental/
+├── src/
+│   ├── main/
+│   │   ├── java/com/carrental/
+│   │   │   ├── controller/          # Business Logic Layer
+│   │   │   │   ├── AuthController.java
+│   │   │   │   ├── BookingController.java
+│   │   │   │   ├── CarRentalSystem.java (Singleton)
+│   │   │   │   └── ContractStatusUpdater.java (自动更新)
+│   │   │   ├── dao/                 # Data Access Layer
+│   │   │   │   ├── GenericDao.java (Interface)
+│   │   │   │   ├── KundeDao.java
+│   │   │   │   ├── FahrzeugDao.java
+│   │   │   │   ├── MietvertragDao.java
+│   │   │   │   ├── MitarbeiterDao.java
+│   │   │   │   └── ZusatzoptionDao.java
+│   │   │   ├── model/               # Domain Model
+│   │   │   │   ├── Benutzer.java (abstract)
+│   │   │   │   ├── Kunde.java
+│   │   │   │   ├── Mitarbeiter.java
+│   │   │   │   ├── Fahrzeug.java
+│   │   │   │   ├── Fahrzeugtyp.java
+│   │   │   │   ├── Mietvertrag.java
+│   │   │   │   ├── Zusatzoption.java
+│   │   │   │   ├── VertragsStatus.java (Enum)
+│   │   │   │   ├── FahrzeugZustand.java (Enum)
+│   │   │   │   └── Antriebsart.java (Enum)
+│   │   │   ├── view/                # Presentation Layer (Swing)
+│   │   │   │   ├── MainFrame.java
+│   │   │   │   ├── LoginPanel.java
+│   │   │   │   ├── RegisterPanel.java
+│   │   │   │   ├── KundeDashboard.java (3 Tabs)
+│   │   │   │   ├── MitarbeiterDashboard.java (4 Tabs)
+│   │   │   │   ├── BookingDialog.java (草稿支持)
+│   │   │   │   ├── FahrzeugPanel.java (过滤功能)
+│   │   │   │   ├── CalendarPanel.java (自定义日历)
+│   │   │   │   └── CalendarDateChooser.java
+│   │   │   ├── util/                # Utilities
+│   │   │   │   ├── DatabaseConfig.java
+│   │   │   │   └── DatabaseConnection.java
+│   │   │   └── Main.java            # Application Entry Point
+│   │   └── resources/
+│   │       └── config.properties    # Datenbankkonfiguration
+├── config/
+│   ├── config.properties            # Laufzeit-Konfiguration
+│   └── config.properties.template   # Template für neue Instanzen
+├── docs/
+│   ├── OOA.md                       # Analyse-Dokument (不可改动)
+│   ├── OOD.md                       # Design-Dokument (不可改动)
+│   ├── Pflichtenheft.md             # Pflichtenheft (不可改动)
+│   ├── IMPLEMENTATION_REPORT.md     # Implementierungsbericht
+│   ├── TEST_GUIDE.md                # Testanleitungen
+│   ├── CHANGELOG.md                 # 更新历史
+│   └── database/
+│       └── schema.sql               # Datenbankschema für Db2
+├── lib/
+│   └── db2jcc4.jar                  # Db2 JDBC-Treiber (optional, wird via Maven geladen)
+├── pom.xml                          # Maven-Konfiguration
+├── mvnw / mvnw.cmd                  # Maven Wrapper
+├── .gitignore                       # Git-Ignore-Regeln
+└── README.md                        # Diese Datei
 ```
 CarRental/
 ├── src/
@@ -274,15 +352,36 @@ CarRental/
 
 ## 🛠️ Verwendete Technologien
 
-| Schicht | Technologie | Version |
-|---------|-------------|---------|
-| **Sprache** | Java | 17+ |
-| **UI Framework** | Swing | JDK-Built-in |
-| **Datenbank** | IBM Db2 | 11.5.x |
-| **JDBC Driver** | com.ibm.db2:jcc | 11.5.9.0 |
-| **Build Tool** | Maven | 3.8+ (Wrapper) |
-| **Architektur** | MVC | Custom |
-| **Pattern** | Singleton, Factory, DAO | - |
+| Layer | Technologie | Version |
+|-------|------------|---------|
+| **语言** | Java | 17+ |
+| **UI框架** | Swing | JDK内置 |
+| **数据库** | IBM Db2 | 11.5.x |
+| **JDBC驱动** | com.ibm.db2:jcc | 11.5.9.0 |
+| **构建工具** | Maven | 3.8+ (Wrapper) |
+| **架构** | MVC | 自定义 |
+| **模式** | Singleton, Factory, DAO, Observer | - |
+
+---
+
+## 📊 项目统计
+
+### 代码统计
+- **总代码行数**: 8,913 行
+- **Java文件数**: 32 个
+- **类总数**: 28 个 (10 Model, 7 DAO, 4 Controller, 8 View, 2 Util, 1 Main, 3 枚举)
+- **文档文件**: 6 个 Markdown文件
+- **配置文件**: 3 个 (pom.xml, .gitignore, 配置模板)
+
+### 功能统计
+- **总功能数**: 25+
+- **客户功能**: 15+
+- **员工功能**: 10+
+- **系统功能**: 5+
+
+### 开发统计
+- **Bug修复**: 10+
+- **版本更新**: v1.1 (2026年1月)
 
 ---
 
@@ -350,7 +449,48 @@ Dieses Projekt dient zu Bildungszwecken.
 
 ---
 
-## 💡 Häufig gestellte Fragen
+## 📝 更新历史
+
+### v1.1 (Januar 2026)
+
+#### 新增功能
+- **顾客界面增强**
+  - 车辆类别过滤功能（Kategorie-basiert）
+  - 合同草稿系统（保存为ANGELEGT状态）
+  - 合同继续预订功能
+  - 密码修改功能（新密码+确认验证）
+  - Vertragsdetails完整显示（包含所有车辆信息和单日价格）
+  - Meine Daten滚动支持
+  - UI改进（标签重命名、按钮文字优化）
+
+- **员工界面增强**
+  - Nutzerverwaltung选项卡（Kunden完整信息管理）
+  - 车辆状态过滤功能
+  - 统计卡片点击跳转集成导航
+  - Vertragsdetails与顾客界面相同显示
+
+- **系统增强**
+  - ContractStatusUpdater（合同状态自动更新）
+  - CalendarPanel和CalendarDateChooser（自定义日历组件）
+  - 调试和日志增强
+  - Bug修复：Fahrzeugtyp数据加载、数据库JOIN、密码对话框布局
+
+#### Bug修复
+- 修复Vertragsdetails只显示车牌号的问题（Fahrzeugtyp未正确加载）
+- 修复密码对话框标签被挤压的问题
+- 修复车辆类型显示错误的问题
+- 修复过滤下拉框重复选项的问题
+- 修复UI元素被遮挡的布局问题
+
+#### 改进
+- 老年人友好的颜色方案（高对比度、大字体）
+- 改进的错误提示（德语）
+- 密码安全（不允许空密码、密码不匹配提示）
+- 数据库调试输出增强
+
+---
+
+## 💡 常见问题
 
 **F: Kann ich das Projekt auch ohne Db2 laufen lassen?**  
 A: Nein, die Architektur ist auf Db2 ausgelegt. Für andere Datenbanken müssten die DAOs angepasst werden.
