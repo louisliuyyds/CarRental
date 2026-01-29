@@ -270,98 +270,98 @@
    - ✅ JavaDoc in allen Klassen
    - ✅ Deutsche Inline-Kommentare
 
-### Phase 7: 功能增强 ✓ (v1.1 January 2026) 🆕
-**Ziel:** 基于用户反馈的系统优化
+### Phase 7: Funktionserweiterungen ✓ (v1.1 Januar 2026) 🆕
+**Ziel:** Systemoptimierung basierend auf Nutzerfeedback
 
 **Implementiert:**
 
-#### 顾客界面增强
-- ✅ **Kategorie-过滤功能**
-  - 简化为只按Kategorie过滤（移除Hersteller过滤）
-  - 提升用户体验和可靠性
-  - 防止重复显示的问题
+#### Kundenoberflächenverbesserungen
+- ✅ **Kategorie-Filterfunktion**
+  - Vereinfachung auf Nur-Kategorie-Filter (Hersteller-Filter entfernt)
+  - Verbesserte Benutzerfreundlichkeit und Zuverlässigkeit
+  - Vermeidung von Doppelanzeigen
 
-- ✅ **合同草稿系统**
-  - ANGELEGT状态支持
-  - "Als Entwurf speichern"按钮
-  - 草稿继续预订功能（"fortsetzen"按钮）
-  - 车辆状态不变（保持VERFUEGBAR）
+- ✅ **Vertragsentwurfssystem**
+  - ANGELEGT-Status-Unterstützung
+  - "Als Entwurf speichern"-Button
+  - Entwurfsfortsetzungsfunktion ("fortsetzen"-Button)
+  - Fahrzeugstatus unverändert (bleibt VERFUEGBAR)
 
-- ✅ **密码修改功能**
-  - 新密码 + 确认密码验证
-  - 不允许空密码
-  - 密码不匹配提示
-  - 数据库实时更新
+- ✅ **Passwortänderungsfunktion**
+  - Neues Passwort + Bestätigungsprüfung
+  - Keine leeren Passwörter erlaubt
+  - Passwort-Abgleich-Hinweise
+  - Echtzeit-Datenbankaktualisierung
 
-- ✅ **Vertragsdetails完整显示**
-  - 修复只显示车牌号的bug
-  - 显示所有车辆详细信息（Hersteller, Modell, Kategorie, Antriebsart, Sitzplätze, Tagespreis）
-  - 单日价格显示（绿色高亮）
-  - 总价在底部显示（红色高亮）
-  - 老年人友好的颜色方案：
-    - 黑色（#000000）- 正文
-    - 深蓝（#003366）- 二级标题
-    - 绿色（#006633）- 价格高亮
-    - 红色（#CC0000）- 总价
-  - 弹窗尺寸优化（800x600）
+- ✅ **Vollständige Vertragsdetails-Anzeige**
+  - Fix: Bug, bei dem nur das Kennzeichen angezeigt wurde
+  - Alle detaillierten Fahrzeuginformationen (Hersteller, Modell, Kategorie, Antriebsart, Sitzplätze, Tagespreis)
+  - Tagespreis-Anzeige (grün hervorgehoben)
+  - Gesamtpreis unten angezeigt (rot hervorgehoben)
+  - Seniorenfreundliches Farbschema:
+    - Schwarz (#000000) - Fließtext
+    - Dunkelblau (#003366) - Überschriften 2. Ebene
+    - Grün (#006633) - Preis-Hervorhebung
+    - Rot (#CC0000) - Gesamtpreis
+  - Pop-up-Größenoptimierung (800x600)
 
-- ✅ **用户界面优化**
-  - 选项卡："Verfügbare Fahrzeuge" → "Autos suchen"
-  - 按钮："Buchung fortsetzen"（文字简化）
-  - 添加用户名只读显示（灰色背景）
-  - Meine Daten选项卡滚动支持
-  - 密码对话框尺寸优化（500x280，输入框宽度280px）
-  - 防止取消进行中的合同（德语错误提示）
+- ✅ **Benutzeroberflächenoptimierung**
+  - Tabs: "Verfügbare Fahrzeuge" → "Autos suchen"
+  - Button: "Buchung fortsetzen" (Text vereinfacht)
+  - Schreibgeschützte Benutzername-Anzeige (grauer Hintergrund)
+  - Scrollunterstützung für Tab "Meine Daten"
+  - Passwortdialog-Größenoptimierung (500x280, Eingabefeldbreite 280px)
+  - Verhinderung der Stornierung laufender Verträge (deutsche Fehlermeldung)
 
-#### 员工界面增强
-- ✅ **Nutzerverwaltung选项卡**
-  - 新增第4个选项卡
-  - 完整显示客户信息（12列）
-  - 查看Kundendetails功能
-  - 统计卡片点击跳转到Nutzerverwaltung
+#### Mitarbeiteroberflächenverbesserungen
+- ✅ **Tab "Nutzerverwaltung"**
+  - Neuer 4. Tab
+  - Vollständige Kundeninformationsanzeige (12 Spalten)
+  - Kundendetails-Anzeigefunktion
+  - Statistikkarten mit Navigation zur Nutzerverwaltung
 
-- ✅ **车辆过滤功能**
-  - 新增按状态过滤对话框
-  - 支持：VERFUEGBAR, VERMIETET, WARTUNG, IN_REPARATUR
-  - 过滤对话框UI
-  - 自动应用过滤
+- ✅ **Fahrzeugfilterfunktion**
+  - Neuer Statusfilterdialog
+  - Unterstützte Status: VERFUEGBAR, VERMIETET, WARTUNG, IN_REPARATUR
+  - Filterdialog-UI
+  - Automatische Filteranwendung
 
-- ✅ **统计卡片点击跳转**
+- ✅ **Statistikkarten-Navigationslinks**
   - Gesamte Fahrzeuge → Fahrzeugverwaltung
-  - Aktive Verträge → Vertragsverwaltung（自动过滤LAUFEND状态）
-  - Verfügbare Fahrzeuge → Fahrzeugverwaltung（自动过滤VERFUEGBAR状态）
+  - Aktive Verträge → Vertragsverwaltung (automatischer LAUFEND-Filter)
+  - Verfügbare Fahrzeuge → Fahrzeugverwaltung (automatischer VERFUEGBAR-Filter)
   - Registrierte Kunden → Nutzerverwaltung
 
-#### 系统增强
+#### Systemverbesserungen
 - ✅ **ContractStatusUpdater**
-  - 合同状态自动更新机制
-  - 定期检查并发送状态变更邮件
-  - 支持手动触发
+  - Automatischer Vertragsstatusaktualisierungsmechanismus
+  - Regelmäßige Überprüfung und E-Mail bei Statusänderungen
+  - Manuelle Auswahlfunktion unterstützt
 
-- ✅ **自定义日历组件**
-  - CalendarPanel：月份视图日历UI
-  - CalendarDateChooser：日期选择器
-  - 集成到注册表单和个人信息界面
+- ✅ **Benutzerdefinierte Kalenderkomponenten**
+  - CalendarPanel: Monatsansichts-Kalender-UI
+  - CalendarDateChooser: Datumsauswahl
+  - Integration in Registrierungsformular und persönliche Datenansicht
 
-- ✅ **调试和日志**
-  - 控制台调试输出增强（Vertragsdetails）
-  - 详细错误日志输出
-  - 故障排查支持
+- ✅ **Debugging und Protokollierung**
+  - Erweiterte Konsolendebug-Ausgaben (Vertragsdetails)
+  - Detaillierte Fehlerprotokollausgaben
+  - Fehlerbehebungssupport
 
-- ✅ **Bug修复**
-  - 修复MietvertragDao的Fahrzeugtyp映射（完整加载所有字段）
-  - 修复密码对话框标签被挤压的问题
-  - 修复车辆类型信息显示错误（下拉框显示Kategorie）
-  - 修复过滤下拉框重复选项的问题
-  - 修复UI元素被遮挡的布局问题
-  - 修复顾客可以取消进行中的合同
-  - 修复Meine Daten部分信息不可见的问题
+- ✅ **Bugfixes**
+  - Fix: MietvertragDao Fahrzeugtyp-Mapping (vollständiges Laden aller Felder)
+  - Fix: Passwortdialog-Labels zusammengedrückt
+  - Fix: Fahrzeugtyp-Info falsch angezeigt (Dropdown zeigt Kategorie)
+  - Fix: Filter-Doppeloption-Problem
+  - Fix: UI-Elemente werden verdeckt durch Layoutprobleme
+  - Fix: Kunde kann laufende Verträge stornieren
+  - Fix: "Meine Daten" Informationen teilweise nicht sichtbar
 
-#### 代码质量改进
-- ✅ 添加详细的JavaDoc和行内注释
-- ✅ 改进异常处理和用户友好的错误提示
-- ✅ 优化SQL查询性能（JOIN优化）
-- ✅ 增强可维护性和可读性
+#### Code-Qualitätsverbesserungen
+- ✅ Detaillierte JavaDoc und Inline-Kommentare hinzugefügt
+- ✅ Verbesserte Exception-Behandlung und benutzerfreundliche Fehlermeldungen
+- ✅ SQL-Abfrage-Performance optimiert (JOIN-Optimierung)
+- ✅ Wartbarkeit und Lesbarkeit verbessert
 
 ## 📁 Finale Projektstruktur
 
@@ -545,30 +545,30 @@ CarRental/
 - **Main:** 1 类
 - **Total:** 32 Klassen
 
-### 文件统计 (v1.1)
-- **Kunden Java-Dateien:** 32
-- **配置文件:** 2 (pom.xml, .gitignore)
-- **文档文件:** 7 (README.md, IMPLEMENTATION_REPORT.md, TEST_GUIDE.md, CHANGELOG.md, OOA.md, OOD.md, Pflichtenheft.md)
-- **数据库脚本:** 1 (schema.sql)
-- **资源文件:** 数量
-- **Total:** 43+ Project-Dateien
+### Dateistatistiken (v1.1)
+- **Java-Quelldateien:** 32
+- **Konfigurationsdateien:** 2 (pom.xml, .gitignore)
+- **Dokumentationsdateien:** 7 (README.md, IMPLEMENTATION_REPORT.md, TEST_GUIDE.md, CHANGELOG.md, OOA.md, OOD.md, Pflichtenheft.md)
+- **Datenbankskripte:** 1 (schema.sql)
+- **Ressourcendateien:** mehrere
+- **Gesamt:** 43+ Projektdateien
 
-### 开发统计 (v1.1)
-- **总开发时间:** v1.0基础版本 + v1.1增强版本
-- **新增代码:** 约1,500行
-- **修改文件数:** 6个 (KundeDashboard.java, MitarbeiterDashboard.java, FahrzeugPanel.java, BookingController.java, BookingDialog.java, MietvertragDao.java)
-- **Bug修复:** 8个严重bug
-- **新增组件:** 2个 (CalendarPanel, CalendarDateChooser)
-- **新增控制器:** 1个 (ContractStatusUpdater)
-- **文档更新:** 4个文档文件
+### Entwicklungsstatistiken (v1.1)
+- **Gesamtentwicklungszeit:** v1.0-Basisversion + v1.1-Erweiterungsversion
+- **Neuer Code:** ca. 1.500 Zeilen
+- **Geänderte Dateien:** 6 (KundeDashboard.java, MitarbeiterDashboard.java, FahrzeugPanel.java, BookingController.java, BookingDialog.java, MietvertragDao.java)
+- **Bugfixes:** 8 kritische Bugs
+- **Neue Komponenten:** 2 (CalendarPanel, CalendarDateChooser)
+- **Neue Controller:** 1 (ContractStatusUpdater)
+- **Dokumentationsaktualisierungen:** 4 Dokumentationsdateien
 
-### 功能统计 (v1.1)
-- **总功能数:** 25+
-- **客户功能:** 15+
-- **员工功能:** 10+
-- **系统功能:** 5+
-- **新增功能(v1.1):** 10个
-- **Bug修复(v1.1):** 8个
+### Funktionsstatistiken (v1.1)
+- **Gesamtfunktionen:** 25+
+- **Kundenfunktionen:** 15+
+- **Mitarbeiterfunktionen:** 10+
+- **Systemfunktionen:** 5+
+- **Neue Funktionen (v1.1):** 10
+- **Bugfixes (v1.1):** 8
 
 ## 🚀 Nächste Schritte
 

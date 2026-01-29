@@ -291,148 +291,148 @@ Das System gilt als erfolgreich getestet, wenn:
 
 ---
 
-## 🔬 高级功能测试 (v1.1新增)
+## 🔬 Erweiterte Funktionstests (v1.1 Neu)
 
-### Test 12: 顾客密码修改
+### Test 12: Kundenpasswortänderung
 
-1. **在顾客Dashboard点击 "Meine Daten"**
+1. **Im Kunden-Dashboard "Meine Daten" anklicken**
 
-2. **点击 "Passwort ändern" 按钮**
+2. **"Passwort ändern"-Button anklicken**
 
-3. **输入测试数据：**
+3. **Testdaten eingeben:**
    - Neues Passwort: `NewPass123!`
    - Passwort bestätigen: `NewPass123!`
 
-4. **点击 "OK"**
+4. **"OK" anklicken**
 
-5. **验证结果：**
-   - ✅ 密码成功修改
-   - ✅ 显示成功消息 "Passwort erfolgreich geändert."
-   - ✅ 下次登录需要新密码
+5. **Ergebnis prüfen:**
+   - ✅ Passwort erfolgreich geändert
+   - ✅ Erfolgsmeldung "Passwort erfolgreich geändert."
+   - ✅ Nächstes Login erfordert neues Passwort
 
-6. **测试错误场景：**
-   - 密码不匹配 → 显示错误提示 "Die Passwörter stimmen nicht überein."
-   - 空密码 → 显示错误提示 "Das Passwort darf nicht leer sein."
-   - 点击"Abbrechen" → 对话框关闭，密码不变
+6. **Fehlerszenarien testen:**
+   - Passwort stimmt nicht überein → Fehlermeldung "Die Passwörter stimmen nicht überein."
+   - Leeres Passwort → Fehlermeldung "Das Passwort darf nicht leer sein."
+   - "Abbrechen" klicken → Dialog schließt sich, Passwort unverändert
 
-### Test 13: 合同草稿功能
+### Test 13: Vertragsentwurfsfunktion
 
-1. **在顾客Dashboard → "Autos suchen"**
+1. **Im Kunden-Dashboard → "Autos suchen"**
 
-2. **选择一辆可用车辆并设置日期**
+2. **Ein verfügbares Fahrzeug auswählen und Datum setzen**
 
-3. **在BookingDialog选择日期和附加选项**
+3. **Im BookingDialog Datum und Zusatzoptionen auswählen**
 
-4. **点击 "Als Entwurf speichern" 按钮**
+4. **"Als Entwurf speichern"-Button anklicken**
 
-5. **验证结果：**
-   - ✅ 合同以ANGELEGT状态保存
-   - ✅ 显示草稿成功消息
-   - ✅ 车辆状态保持VERFUEGBAR（不变为VERMIETET）
-   - ✅ Dialog关闭
+5. **Ergebnis prüfen:**
+   - ✅ Vertrag im Status ANGELEGT gespeichert
+   - ✅ Entwurfserfolgsmeldung angezeigt
+   - ✅ Fahrzeugstatus bleibt VERFUEGBAR (nicht VERMIETET)
+   - ✅ Dialog schließt sich
 
-6. **在 "Meine Buchungen" 查看**
-   - ✅ 合同状态显示为"ANGELEGT"
-   - ✅ 车辆状态未改变
+6. **In "Meine Buchungen" prüfen:**
+   - ✅ Vertragsstatus zeigt "ANGELEGT"
+   - ✅ Fahrzeugstatus unverändert
 
-7. **选择angelegt状态的合同，点击"fortsetzen"按钮**
+7. **ANGELEGT-Status-Vertrag auswählen, "fortsetzen"-Button anklicken**
 
-8. **在打开的Dialog中可以修改日期和选项**
+8. **Im geöffneten Dialog Datum und Optionen ändern können**
 
-9. **点击 "Buchung abschließen"**
+9. **"Buchung abschließen" anklicken**
 
-10. **验证结果：**
-    - ✅ 合同状态变为BESTAETIGT（如果日期是今天或过去）或LAUFEND（如果日期是今天）
-    - ✅ 车辆状态变为VERMIETET
-    - ✅ 显示成功消息
-    - ✅ Dialog关闭
+10. **Ergebnis prüfen:**
+    - ✅ Vertragsstatus ändert zu BESTAETIGT (wenn Datum heute oder vergangen) oder LAUFEND (wenn Datum heute)
+    - ✅ Fahrzeugstatus ändert zu VERMIETET
+    - ✅ Erfolgsmeldung angezeigt
+    - ✅ Dialog schließt sich
 
-11. **测试场景：在angelegt状态下取消合同**
-    - 选择angelegt状态的合同
-    - 点击"Stornieren"
-    - 应该允许取消并显示成功消息（草稿可以自由取消）
+11. **Szenario: ANGELEGT-Vertrag stornieren:**
+    - ANGELEGT-Status-Vertrag auswählen
+    - "Stornieren" anklicken
+    - Stornierung sollte erlaubt sein mit Erfolgsmeldung (Entwürfe können frei storniert werden)
 
-### Test 14: 车辆类别过滤功能
+### Test 14: Fahrzeugkategoriefilterfunktion
 
-1. **在顾客Dashboard → "Autos suchen"**
+1. **Im Kunden-Dashboard → "Autos suchen"**
 
-2. **设置开始和结束日期**
+2. **Start- und Enddatum setzen**
 
-3. **点击 "Autos anzeigen"**
+3. **"Autos anzeigen" anklicken**
 
-4. **查看显示的车辆列表**
+4. **Angezeigte Fahrzeugliste prüfen**
 
-5. **在"Kategorie:"下拉框选择不同类别**
+5. **Im "Kategorie:"-Dropdown verschiedene Kategorien auswählen**
 
-6. **验证结果：**
-   - ✅ 车辆列表自动筛选为所选类别
-   - ✅ 列表只显示该类别的车辆
-   - ✅ 选择"Alle"后显示所有可用车辆
-   - ✅ 过滤后仍可正常预订车辆
+6. **Ergebnis prüfen:**
+   - ✅ Fahrzeugliste filtert automatisch nach gewählter Kategorie
+   - ✅ Liste zeigt nur Fahrzeuge dieser Kategorie
+   - ✅ "Alle" zeigt alle verfügbaren Fahrzeuge
+   - ✅ Nach Filterung können Fahrzeuge normal gebucht werden
 
-### Test 15: 员工Nutzerverwaltung跳转
+### Test 15: Mitarbeiter Nutzerverwaltungsnavigation
 
-1. **员工登录 → 进入"Statistiken"选项卡**
+1. **Mitarbeiter-Login → Tab "Statistiken"**
 
-2. **点击 "Registrierte Kunden"统计卡片**
+2. **Statistikkarte "Registrierte Kunden" anklicken**
 
-3. **验证结果：**
-   - ✅ 自动跳转到"Nutzerverwaltung"选项卡
-   - ✅ 激活"Registrierte Kunden"选项卡显示
-   - ✅ 客户列表完整显示
+3. **Ergebnis prüfen:**
+   - ✅ Automatische Weiterleitung zum Tab "Nutzerverwaltung"
+   - ✅ Untertab "Registrierte Kunden" aktiv
+   - ✅ Kundenliste vollständig angezeigt
 
-### Test 16: 员工车辆状态过滤
+### Test 16: Mitarbeiter Fahrzeugstatusfilter
 
-1. **员工登录 → 进入"Fahrzeugverwaltung" → "Fahrzeuge"选项卡**
+1. **Mitarbeiter-Login → "Fahrzeugverwaltung" → Tab "Fahrzeuge"**
 
-2. **点击 "Filter" 按钮**
+2. **"Filter"-Button anklicken**
 
-3. **在过滤对话框中选择不同的状态**
+3. **Im Filterdialog verschiedene Status auswählen**
 
-4. **验证结果：**
-   - ✅ 车辆列表按所选状态筛选
-   - ✅ 支持的状态：Alle, VERFUEGBAR, VERMIETET, WARTUNG, IN_REPARATUR
-   - ✅ 过滤对话框关闭后过滤保持
-   - ✅ 可以重置为"Alle"
+4. **Ergebnis prüfen:**
+   - ✅ Fahrzeugliste filtert nach gewähltem Status
+   - ✅ Unterstützte Status: Alle, VERFUEGBAR, VERMIETET, WARTUNG, IN_REPARATUR
+   - ✅ Filter bleibt aktiv nach Schließen des Dialogs
+   - ✅ Kann auf "Alle" zurückgesetzt werden
 
-### Test 17: 员工跳转导航
+### Test 17: Mitarbeiter Navigationslinks
 
-1. **员工登录 → 进入"Statistiken"选项卡**
+1. **Mitarbeiter-Login → Tab "Statistiken"**
 
-2. **测试各个统计卡片点击跳转：**
+2. **Statistikkarten-Links testen:**
    - Gesamte Fahrzeuge → Fahrzeugverwaltung
-   - Aktive Verträge → Vertragsverwaltung（应用LAUFEND过滤）
-   - Verfügbare Fahrzeuge → Fahrzeugverwaltung（应用VERFUEGBAR过滤）
+   - Aktive Verträge → Vertragsverwaltung (LAUFEND-Filter angewendet)
+   - Verfügbare Fahrzeuge → Fahrzeugverwaltung (VERFUEGBAR-Filter angewendet)
 
-3. **验证结果：**
-   - ✅ 跳转到正确的选项卡
-   - ✅ 激活相应的子选项卡
-   - ✅ 自动应用正确的过滤
-   - ✅ 数据正确加载
+3. **Ergebnis prüfen:**
+   - ✅ Weiterleitung zum korrekten Tab
+   - ✅ Entsprechender Untertab aktiv
+   - ✅ Korrekte Filter automatisch angewendet
+   - ✅ Daten korrekt geladen
 
-### Test 18: Vertragsdetails完整显示验证
+### Test 18: Vollständige Vertragsdetails-Anzeige
 
-1. **员工登录 → "Vertragsverwaltung"选项卡**
+1. **Mitarbeiter-Login → Tab "Vertragsverwaltung"**
 
-2. **选择任意合同，点击 "Details anzeigen"**
+2. **Beliebigen Vertrag auswählen, "Details anzeigen" anklicken**
 
-3. **验证弹窗中显示的完整信息：**
-   - ✅ 最顶部显示合同号码（Vertragsnummer）
-   - ✅ Kunde区块：Kunden-ID, 姓名, Email
-   - ✅ Fahrzeug区块：
+3. **Vollständige Informationen im Pop-up prüfen:**
+   - ✅ Oben Vertragsnummer angezeigt
+   - ✅ Kunde-Bereich: Kunden-ID, Name, E-Mail
+   - ✅ Fahrzeug-Bereich:
      - Kennzeichen
      - Hersteller
      - Modell
      - Kategorie
      - Antriebsart
      - Sitzplätze
-     - **Tagespreis**（绿色高亮显示）
-   - ✅ Mietzeitraum区块：Startdatum, Enddatum
-   - ✅ Zusatzoptionen区块（完整列表）
-   - ✅ Status区块
-   - ✅ Gesamtpreis（底部，红色高亮显示）
+     - **Tagespreis** (grün hervorgehoben)
+   - ✅ Mietzeitraum-Bereich: Startdatum, Enddatum
+   - ✅ Zusatzoptionen-Bereich (vollständige Liste)
+   - ✅ Status-Bereich
+   - ✅ Gesamtpreis (unten, rot hervorgehoben)
 
-4. **验证控制台输出（DEBUG消息）：**
+4. **Konsolenausgabe prüfen (DEBUG-Meldungen):**
    ```
    DEBUG Vertragsdetails:
      Mietnummer: MV-...
@@ -446,115 +446,115 @@ Das System gilt als erfolgreich getestet, wenn:
        Tagespreis: 80.0
    ```
 
-### Test 19: 老年人友好性验证
+### Test 19: Seniorenfreundlichkeit-Verifizierung
 
-1. **打开Vertragsdetails弹窗**
+1. **Vertragsdetails-Pop-up öffnen**
 
-2. **验证字体大小和颜色对比度：**
-   - ✅ 一级标题（如"Vertragsnummer"）：24pt, 加粗，黑色
-   - ✅ 二级标题（如"Kunde"、"Fahrzeug"）：18pt, 加粗，深蓝色（#003366）
-   - ✅ 详细信息行：14pt, 普通字体，黑色
-   - ✅ Tagespreis：16pt, 加粗, 绿色（#006633）
-   - ✅ Gesamtpreis：24pt, 加粗, 红色（#CC0000）
+2. **Schriftgröße und Farbkontrast prüfen:**
+   - ✅ Überschrift 1. Ebene (z.B. "Vertragsnummer"): 24pt, fett, schwarz
+   - ✅ Überschrift 2. Ebene (z.B. "Kunde", "Fahrzeug"): 18pt, fett, dunkelblau (#003366)
+   - ✅ Detailzeilen: 14pt, normale Schrift, schwarz
+   - ✅ Tagespreis: 16pt, fett, grün (#006633)
+   - ✅ Gesamtpreis: 24pt, fett, rot (#CC0000)
 
-3. **验证可读性：**
-   - ✅ 字体足够大，老年人易于阅读
-   - ✅ 颜色对比度高（黑、深蓝、绿、红）
-   - ✅ 信息层次清晰（标题 > 区块标题 > 详情）
-   - ✅ 总价醒目突出
+3. **Lesbarkeit prüfen:**
+   - ✅ Schrift groß genug für Senioren
+   - ✅ Hoher Farbkontrast (schwarz, dunkelblau, grün, rot)
+   - ✅ Klare Informationshierarchie (Überschrift > Bereichsüberschrift > Details)
+   - ✅ Gesamtpreis deutlich hervorgehoben
 
-### Test 20: 密码对话框UI优化
+### Test 20: Passwortdialog-UI-Optimierung
 
-1. **顾客登录 → "Meine Daten" → "Passwort ändern"**
+1. **Kunden-Login → "Meine Daten" → "Passwort ändern"**
 
-2. **验证对话框尺寸和布局：**
-   - ✅ 对话框宽度：500px
-   - ✅ 对话框高度：280px
-   - ✅ "Passwort bestätigen:"标签完整显示（不被挤压）
-   - ✅ 输入框宽度：280px
-   - ✅ 标签和输入框对齐
+2. **Dialoggröße und Layout prüfen:**
+   - ✅ Dialogbreite: 500px
+   - ✅ Dialoghöhe: 280px
+   - ✅ "Passwort bestätigen:"-Label vollständig angezeigt (nicht zusammengedrückt)
+   - ✅ Eingabefeldbreite: 280px
+   - ✅ Labels und Eingabefelder ausgerichtet
 
-### Test 21: Meine Daten滚动功能
+### Test 21: "Meine Daten" Scrollfunktion
 
-1. **顾客登录 → "Meine Daten"**
+1. **Kunden-Login → "Meine Daten"**
 
-2. **尝试滚动表单内容**
+2. **Formularinhalt scrollen versuchen**
 
-3. **验证结果：**
-   - ✅ 表单可以垂直滚动
-   - ✅ 滚动速度适中
-   - ✅ 所有字段都可访问（包括用户名和生日）
-   - ✅ 水平方向不滚动（不必要）
+3. **Ergebnis prüfen:**
+   - ✅ Formular kann vertikal gescrollt werden
+   - ✅ Scrollgeschwindigkeit angemessen
+   - ✅ Alle Felder zugänglich (inkl. Benutzername und Geburtstag)
+   - ✅ Kein horizontales Scrollen (unnötig)
 
-### Test 22: 合同草稿数据完整性
+### Test 22: Vertragsentwurfsdatenintegrität
 
-1. **创建草稿合同并保存**
+1. **Vertragsentwurf erstellen und speichern**
 
-2. **验证数据库数据：**
+2. **Datenbankdaten prüfen:**
    ```sql
    SELECT * FROM Mietvertrag WHERE Status = 'ANGELEGT';
    ```
 
-3. **验证：**
-   - ✅ 合同状态为ANGELEGT
-   - ✅ Fahrzeug_ID关联正确
-   - Fahrzeug_ID对应的Fahrzeugtyp_ID仍然指向该车型
-   - ✅ 车辆的Zustand保持VERFUEGBAR
-   - ✅ 所有选定的Zusatzoptionen正确关联
+3. **Verifizierung:**
+   - ✅ Vertragsstatus ist ANGELEGT
+   - ✅ Fahrzeug_ID korrekt verknüpft
+   - Fahrzeug_ID-Fahrzeugtyp_ID verweist noch auf diesen Typ
+   - ✅ Fahrzeug-Zustand bleibt VERFUEGBAR
+   - ✅ Alle ausgewählten Zusatzoptionen korrekt verknüpft
 
 ---
 
-## 🐛 Bug修复测试 (v1.1新增)
+## 🐛 Bugfix-Tests (v1.1 Neu)
 
-### Test B1: Vertragsdetails车辆信息缺失修复
+### Test B1: Vertragsdetails Fahrzeuginformationen fehlten - Fix
 
-1. **重现问题：**
-   - 之前版本只显示车牌号
+1. **Problem reproduzieren:**
+   - Frühere Version zeigte nur das Kennzeichen
 
-2. **验证修复：**
-   - ✅ 完整的车辆信息显示
-   - ✅ 控制台显示Fahrzeugtyp为NOT NULL
-   - ✅ 所有Fahrzeugtyp字段正确显示
+2. **Fix verifizieren:**
+   - ✅ Vollständige Fahrzeuginformationen angezeigt
+   - ✅ Konsole zeigt Fahrzeugtyp als NOT NULL
+   - ✅ Alle Fahrzeugtyp-Felder korrekt angezeigt
 
-### Test B2: 密码对话框标签被挤压修复
+### Test B2: Passwortdialog-Labels zusammengedrückt - Fix
 
-1. **重现问题：**
-   - "Passwort bestätigen:"被截断为"Passwort bestät"
+1. **Problem reproduzieren:**
+   - "Passwort bestätigen:" auf "Passwort bestät" abgeschnitten
 
-2. **验证修复：**
-   - ✅ "Passwort bestätigen:"完整显示
-   - ✅ 输入框宽度适中
-   - ✅ 对话框布局平衡
+2. **Fix verifizieren:**
+   - ✅ "Passwort bestätigen:" vollständig angezeigt
+   - ✅ Eingabefeldbreite angemessen
+   - ✅ Dialoglayout ausgewogen
 
-### Test B3: 车辆类型信息错误显示修复
+### Test B3: Fahrzeugtyp-Info falsch angezeigt - Fix
 
-1. **重现问题：**
-   - 创建的Familienauto类型仍显示为"kompakt"
+1. **Problem reproduzieren:**
+   - Erstellter Familientyp zeigte noch "kompakt"
 
-2. **验证修复：**
-   - ✅ 下拉框显示格式："型号 (Kategorie)"
-   - ✅ 显示正确的类别信息
-   - ✅ 数据库中Fahrzeugtyp_ID正确
+2. **Fix verifizieren:**
+   - ✅ Dropdown zeigt Format: "Modell (Kategorie)"
+   - ✅ Korrekte Kategorieninformation angezeigt
+   - ✅ Fahrzeugtyp_ID in Datenbank korrekt
 
-### Test B4: 过滤下拉框重复选项修复
+### Test B4: Filter-Dropdown doppelte Optionen - Fix
 
-1. **重现问题：**
-   - 选择不同类型时，选项重复（如"Alle, Tesla, Alle, Tesla"）
+1. **Problem reproduzieren:**
+   - Bei Auswahl verschiedener Typen Optionen doppelt (z.B. "Alle, Tesla, Alle, Tesla")
 
-2. **验证修复：**
-   - ✅ 只显示Kategorie过滤
-   - ✅ 选项不重复
-   - ✅ 默认显示"Alle"
+2. **Fix verifizieren:**
+   - ✅ Nur Kategorie-Filter angezeigt
+   - ✅ Keine doppelten Optionen
+   - ✅ Standardmäßig "Alle" angezeigt
 
-### Test B5: 顾客取消进行中的合同
+### Test B5: Kunde storniert laufenden Vertrag
 
-1. **重新安装v1.1版本**
+1. **v1.1 installieren**
 
-2. **尝试取消LAUFEND或BESTAETIGT状态的合同**
+2. **Versuchen, LAUFEND- oder BESTAETIGT-Status-Vertrag zu stornieren**
 
-3. **验证行为：**
-   - ❌ 显示错误提示："Buchung kann nicht storniert werden. Bitte wenden Sie sich für Änderungen an den Mitarbeiter."
-   - ✅ ANGELEGT状态的合同可以自由取消
+3. **Verhalten verifizieren:**
+   - ❌ Fehlermeldung: "Buchung kann nicht storniert werden. Bitte wenden Sie sich für Änderungen an den Mitarbeiter."
+   - ✅ ANGELEGT-Status-Verträge können frei storniert werden
 
 ---
 

@@ -1,19 +1,19 @@
-# CarRental 项目开发指南
+# CarRental Projektenwicklungshandbuch
 
-## 技术栈
+## Technologie-Stack
 - Java 17, Swing GUI
-- IBM Db2 数据库
-- Maven 构建
+- IBM Db2 Datenbank
+- Maven Build-System
 
-## 架构
-- 分层架构：Model → DAO → Controller → View
-- CarRentalSystem 使用 Singleton 模式
+## Architektur
+- Schichtenarchitektur: Model → DAO → Controller → View
+- CarRentalSystem verwendet Singleton-Muster
 
-## 编码规范
-- 类名/变量名使用德语（与文档一致）
-- 注释使用德语
+## Codierungsstandards
+- Klassennamen/Variablennamen auf Deutsch (konsistent mit Dokumentation)
+- Kommentare auf Deutsch
 
-## 关键文档位置
-- 需求：docs/Pflichtenheft.md
-- 设计：docs/OOD.md
-- 数据库：docs/database/schema.sql
+## Wichtige Dokumentationsorte
+- Anforderungen: docs/Pflichtenheft.md
+- Design: docs/OOD.md
+- Datenbank: docs/database/schema.sql
