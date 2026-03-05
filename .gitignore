@@ -40,6 +40,12 @@ target/
 mvnw.cmd
 mvnw
 
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+
 # === 敏感配置 ===
 config/config.properties
 src/main/resources/config.properties
