@@ -29,22 +29,21 @@ nbactions/
 .vscode/
 
 # === Build ===
-target/
 *.class
 *.jar
 *.war
 *.ear
-
-# Maven Wrapper
-.mvn/
-mvnw.cmd
-mvnw
 
 # Gradle
 .gradle/
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !gradle/wrapper/gradle-wrapper.properties
+
+# === Jenkins CI/CD ===
+work/
+.jenkins/
+test-output/
 
 # === 敏感配置 ===
 config/config.properties

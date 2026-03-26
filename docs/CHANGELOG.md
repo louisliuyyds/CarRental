@@ -140,7 +140,39 @@
 ### Technische Schulden
 - Ausstehend: Passwortverschlüsselung (aktuell Klartextspeicherung)
 - Ausstehend: E-Mail-Benachrichtigungsversand
-- Ausstehend: Automatisches Testsuite
+
+---
+
+## [1.2.0] - 2026-03-26
+
+### CI/CD Integration (Jenkins)
+
+#### Neue Funktionen
+- **Jenkins Pipeline** - Vollständige CI/CD-Unterstützung
+ - `Jenkinsfile` mit 5-Stufen-Pipeline
+ - Checkout → Build → Test → Package → Build Info
+ - JUnit-Testberichte und HTML-Reports
+
+- **Unit Tests (JUnit 5)**
+ - `BuildVerificationTest` - Projektstruktur-Validierung
+ - `ModelTest` - Modellklassen- und Enum-Tests
+ - `StringUtilTest` - Hilfsfunktion-Tests
+
+- **Gradle-Aktualisierung**
+ - Gradle Wrapper auf 8.14 aktualisiert
+ - JUnit 5-Abhängigkeiten hinzugefügt
+ - Headless-Modus für CI-Umgebungen
+
+#### Technische Verbesserungen
+- Build-Konfiguration für CI/CD optimiert
+- Test-Logging mit detaillierter Ausgabe
+- Automatische Testberichterstellung
+
+### Entwicklungswerkzeuge
+- **Build-Tool:** Gradle 8.14
+- **Test-Framework:** JUnit Jupiter 5.9.2
+- **Java-Version:** 17
+- **CI-Server:** Jenkins
 
 ---
 
@@ -154,4 +186,4 @@
 - Mietvertragsmanagement
 - Swing GUI implementiert
 - IBM Db2 Datenbankintegration
-- Maven Build-System
+- Gradle Build-System

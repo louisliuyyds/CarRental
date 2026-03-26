@@ -49,9 +49,9 @@ VALUES (1, 1001, 'Vermietung', TRUE);
 ### Test 1: Kundenregistrierung
 
 1. **Anwendung starten**
-   ```bash
-   java -jar target/car-rental-system-1.0-SNAPSHOT.jar
-   ```
+```bash
+java -jar build/libs/car-rental-system-1.0-SNAPSHOT.jar
+```
 
 2. **Auf "Registrieren" klicken**
 
@@ -558,7 +558,7 @@ Das System gilt als erfolgreich getestet, wenn:
 
 ---
 
-## 📝 测试协议
+## 📝 Testprotokoll
 
 Nach jedem Test dokumentieren Sie:
 
@@ -569,6 +569,43 @@ Tester: [Name]
 Ergebnis: ✅ Bestanden / ❌ Fehlgeschlagen
 Bemerkungen: [Besonderheiten, Fehler, Verbesserungsvorschläge]
 ```
+
+---
+
+## 🤖 Unit Tests (CI/CD)
+
+### Automatisierte Tests mit JUnit 5
+
+Das Projekt enthält eine automatisierte Testsuite für CI/CD-Pipelines (Jenkins).
+
+#### Tests lokal ausführen
+
+```bash
+# Alle Tests ausführen
+./gradlew test
+
+# Testbericht anzeigen
+# Öffnen Sie: build/reports/tests/test/index.html
+```
+
+#### Testklassen
+
+| Testklasse | Beschreibung |
+|------------|--------------|
+| `BuildVerificationTest` | Überprüft Projektstruktur und Java-Version |
+| `ModelTest` | Testet Modellklassen und Enums |
+| `StringUtilTest` | Testet Hilfsfunktionen für Zeichenketten |
+
+#### Jenkins Pipeline Integration
+
+Das Projekt enthält eine `Jenkinsfile` für CI/CD:
+
+1. **Checkout** - Code aus Git-Repository laden
+2. **Build** - Projekt kompilieren (`./gradlew compileJava`)
+3. **Test** - Unit Tests ausführen (`./gradlew test`)
+4. **Package** - JAR-Datei erstellen (`./gradlew jar`)
+
+Siehe `Jenkinsfile` im Projektverzeichnis für Details.
 
 ## 🔍 Performance-Tests
 

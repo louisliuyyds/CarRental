@@ -20,6 +20,10 @@ java {
 
 dependencies {
     implementation 'com.ibm.db2:jcc:11.5.9.0'
+
+    // ===== JUnit 5 测试依赖 (Jenkins CI/CD演示) =====
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 application {
@@ -38,4 +42,20 @@ jar {
 
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
+}
+
+// ===== JUnit 5 测试配置 (Jenkins CI/CD演示) =====
+test {
+    useJUnitPlatform()
+
+    // Headless模式 - 用于CI环境（无图形界面）
+    jvmArgs = ['-Djava.awt.headless=true']
+
+    // 测试输出配置
+    testLogging {
+        events "passed", "skipped", "failed"
+        showExceptions true
+        showCauses true
+        showStackTraces true
+    }
 }
