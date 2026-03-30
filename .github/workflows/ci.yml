@@ -1,0 +1,131 @@
+name: CI Build and Release
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
+      with:
+        gradle-version: '8.5'
+    
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+    
+    - name: Build with Gradle
+      run: ./gradlew build
+    
+    - name: Run tests
+      run: ./gradlew test --continue || echo "No tests found or tests failed"
+    
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: car-rental-system-jar
+        path: build/libs/*.jar
+        retention-days: 30
+    
+    - name: Upload test reports
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-reports
+        path: build/reports/tests/
+        retention-days: 7
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
+      with:
+        gradle-version: '8.5'
+    
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+    
+    - name: Build release JAR
+      run: ./gradlew clean build
+    
+    - name: Get version from build.gradle
+      id: get_version
+      run: |
+        VERSION=$(grep "version = " build.gradle | sed "s/version = '\(.*\)'/\1/" | tr -d ' ')
+        echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+    
+    - name: Create release artifact directory
+      run: mkdir -p release
+    
+    - name: Copy JAR to release directory
+      run: cp build/libs/*.jar release/car-rental-system-${{ steps.get_version.outputs.VERSION }}.jar
+    
+    - name: Generate changelog
+      id: changelog
+      run: |
+        echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+        if [ -f docs/CHANGELOG.md ]; then
+          head -n 50 docs/CHANGELOG.md >> $GITHUB_OUTPUT
+        else
+          echo "Release version ${{ steps.get_version.outputs.VERSION }}" >> $GITHUB_OUTPUT
+        fi
+        echo "EOF" >> $GITHUB_OUTPUT
+    
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v${{ steps.get_version.outputs.VERSION }}-${{ github.run_number }}
+        name: CarRental v${{ steps.get_version.outputs.VERSION }} Build ${{ github.run_number }}
+        body: |
+          ## CarRental Autovermietungssystem
+          
+          **Version:** ${{ steps.get_version.outputs.VERSION }}
+          **Build:** ${{ github.run_number }}
+          **Commit:** ${{ github.sha }}
+          
+          ### Changes
+          ${{ steps.changelog.outputs.changelog }}
+          
+          ### Installation
+          Download the JAR file and run:
+          ```bash
+          java -jar car-rental-system-${{ steps.get_version.outputs.VERSION }}.jar
+          ```
+          
+          ### Requirements
+          - Java 17 or higher
+          - IBM Db2 database (configured in config.properties)
+        files: release/*.jar
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

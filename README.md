@@ -58,11 +58,11 @@ Ein vollständiges **Java-basiertes Autovermietungssystem** mit grafischer Benut
 ## 🖥️ Systemanforderungen
 
 ### Notwendig
-- **Java Development Kit (JDK) 17+**  
-  [Download Temurin JDK 17](https://adoptium.net/temurin/releases/?version=17)
-- **IBM Db2 Datenbank**  
-  (Cloud-Instanz oder lokal)
-- **Maven 3.8+** (wird automatisch via Maven Wrapper bereitgestellt)
+- **Java Development Kit (JDK) 17+**
+[Download Temurin JDK 17](https://adoptium.net/temurin/releases/?version=17)
+- **IBM Db2 Datenbank**
+(Cloud-Instanz oder lokal)
+- **Gradle 8.5+** (wird automatisch via Gradle Wrapper bereitgestellt)
 
 ### Optional
 - Git (für Versionskontrolle)
@@ -84,10 +84,10 @@ cp config/config.properties.template src/main/resources/config.properties
 # Bearbeite src/main/resources/config.properties mit deinen Db2-Zugangsdaten
 
 # 3. Projekt bauen
-.\mvnw.cmd clean package
+.\gradlew.bat build
 
 # 4. Anwendung starten
-java -jar target/car-rental-system-jar-with-dependencies.jar
+java -jar build/libs/car-rental-system-1.0-SNAPSHOT.jar
 ```
 
 ### Linux / macOS
@@ -102,10 +102,10 @@ cp config/config.properties.template src/main/resources/config.properties
 # Bearbeite src/main/resources/config.properties
 
 # 3. Projekt bauen
-./mvnw clean package
+./gradlew build
 
 # 4. Anwendung starten
-java -jar target/car-rental-system-1.0-SNAPSHOT.jar
+java -jar build/libs/car-rental-system-1.0-SNAPSHOT.jar
 ```
 
 **Die GUI sollte sich automatisch öffnen!**
@@ -186,22 +186,21 @@ db.ssl=true
 ```powershell
 cd CarRental
 
-# Maven Wrapper startet automatisch (kein zusätzlicher Maven-Install nötig)
-.\mvnw.cmd clean package
+# Gradle Wrapper startet automatisch (kein zusätzlicher Gradle-Install nötig)
+.\gradlew.bat build
 
 # Linux/macOS:
-./mvnw clean package
+./gradlew build
 
 # Nach erfolgreichem Build:
-# ✅ target/car-rental-system-jar-with-dependencies.jar (JAR mit allen Dependencies)
-# ✅ target/car-rental-system-1.0-SNAPSHOT.jar (JAR ohne Dependencies)
+# ✅ build/libs/car-rental-system-1.0-SNAPSHOT.jar (Fat-JAR mit allen Dependencies)
 ```
 
 ### Schritt 6: Anwendung ausführen
 
 ```powershell
 # Starte mit der Fat-JAR (inkl. Db2-Treiber)
-java -jar target/car-rental-system-jar-with-dependencies.jar
+java -jar build/libs/car-rental-system-1.0-SNAPSHOT.jar
 
 # Erfolgreich? Konsoleausgabe:
 # ✓ Autovermietungssystem gestartet.
@@ -229,65 +228,65 @@ Nach dem Datenbankschema-Import (docs/database/schema.sql) sind folgende Test-Ko
 ```
 CarRental/
 ├── src/
-│   ├── main/
-│   │   ├── java/com/carrental/
-│   │   │   ├── controller/          # Business Logic Layer
-│   │   │   │   ├── AuthController.java
-│   │   │   │   ├── BookingController.java
-│   │   │   │   ├── CarRentalSystem.java (Singleton)
-│   │   │   │   └── ContractStatusUpdater.java (自动更新)
-│   │   │   ├── dao/                 # Data Access Layer
-│   │   │   │   ├── GenericDao.java (Interface)
-│   │   │   │   ├── KundeDao.java
-│   │   │   │   ├── FahrzeugDao.java
-│   │   │   │   ├── MietvertragDao.java
-│   │   │   │   ├── MitarbeiterDao.java
-│   │   │   │   └── ZusatzoptionDao.java
-│   │   │   ├── model/               # Domain Model
-│   │   │   │   ├── Benutzer.java (abstract)
-│   │   │   │   ├── Kunde.java
-│   │   │   │   ├── Mitarbeiter.java
-│   │   │   │   ├── Fahrzeug.java
-│   │   │   │   ├── Fahrzeugtyp.java
-│   │   │   │   ├── Mietvertrag.java
-│   │   │   │   ├── Zusatzoption.java
-│   │   │   │   ├── VertragsStatus.java (Enum)
-│   │   │   │   ├── FahrzeugZustand.java (Enum)
-│   │   │   │   └── Antriebsart.java (Enum)
-│   │   │   ├── view/                # Presentation Layer (Swing)
-│   │   │   │   ├── MainFrame.java
-│   │   │   │   ├── LoginPanel.java
-│   │   │   │   ├── RegisterPanel.java
-│   │   │   │   ├── KundeDashboard.java (3 Tabs)
-│   │   │   │   ├── MitarbeiterDashboard.java (4 Tabs)
-│   │   │   │   ├── BookingDialog.java (草稿支持)
-│   │   │   │   ├── FahrzeugPanel.java (过滤功能)
-│   │   │   │   ├── CalendarPanel.java (自定义日历)
-│   │   │   │   └── CalendarDateChooser.java
-│   │   │   ├── util/                # Utilities
-│   │   │   │   ├── DatabaseConfig.java
-│   │   │   │   └── DatabaseConnection.java
-│   │   │   └── Main.java            # Application Entry Point
-│   │   └── resources/
-│   │       └── config.properties    # Datenbankkonfiguration
+│ ├── main/
+│ │ ├── java/com/carrental/
+│ │ │ ├── controller/ # Business Logic Layer
+│ │ │ │ ├── AuthController.java
+│ │ │ │ ├── BookingController.java
+│ │ │ │ ├── CarRentalSystem.java (Singleton)
+│ │ │ │ └── ContractStatusUpdater.java (自动更新)
+│ │ │ ├── dao/ # Data Access Layer
+│ │ │ │ ├── GenericDao.java (Interface)
+│ │ │ │ ├── KundeDao.java
+│ │ │ │ ├── FahrzeugDao.java
+│ │ │ │ ├── MietvertragDao.java
+│ │ │ │ ├── MitarbeiterDao.java
+│ │ │ │ └── ZusatzoptionDao.java
+│ │ │ ├── model/ # Domain Model
+│ │ │ │ ├── Benutzer.java (abstract)
+│ │ │ │ ├── Kunde.java
+│ │ │ │ ├── Mitarbeiter.java
+│ │ │ │ ├── Fahrzeug.java
+│ │ │ │ ├── Fahrzeugtyp.java
+│ │ │ │ ├── Mietvertrag.java
+│ │ │ │ ├── Zusatzoption.java
+│ │ │ │ ├── VertragsStatus.java (Enum)
+│ │ │ │ ├── FahrzeugZustand.java (Enum)
+│ │ │ │ └── Antriebsart.java (Enum)
+│ │ │ ├── view/ # Presentation Layer (Swing)
+│ │ │ │ ├── MainFrame.java
+│ │ │ │ ├── LoginPanel.java
+│ │ │ │ ├── RegisterPanel.java
+│ │ │ │ ├── KundeDashboard.java (3 Tabs)
+│ │ │ │ ├── MitarbeiterDashboard.java (4 Tabs)
+│ │ │ │ ├── BookingDialog.java (草稿支持)
+│ │ │ │ ├── FahrzeugPanel.java (过滤功能)
+│ │ │ │ ├── CalendarPanel.java (自定义日历)
+│ │ │ │ └── CalendarDateChooser.java
+│ │ │ ├── util/ # Utilities
+│ │ │ │ ├── DatabaseConfig.java
+│ │ │ │ └── DatabaseConnection.java
+│ │ │ └── Main.java # Application Entry Point
+│ │ └── resources/
+│ │ └── config.properties # Datenbankkonfiguration
 ├── config/
-│   ├── config.properties            # Laufzeit-Konfiguration
-│   └── config.properties.template   # Template für neue Instanzen
+│ ├── config.properties # Laufzeit-Konfiguration
+│ └── config.properties.template # Template für neue Instanzen
 ├── docs/
-│   ├── OOA.md                       # Analyse-Dokument (不可改动)
-│   ├── OOD.md                       # Design-Dokument (不可改动)
-│   ├── Pflichtenheft.md             # Pflichtenheft (不可改动)
-│   ├── IMPLEMENTATION_REPORT.md     # Implementierungsbericht
-│   ├── TEST_GUIDE.md                # Testanleitungen
-│   ├── CHANGELOG.md                 # 更新历史
-│   └── database/
-│       └── schema.sql               # Datenbankschema für Db2
+│ ├── OOA.md # Analyse-Dokument (不可改动)
+│ ├── OOD.md # Design-Dokument (不可改动)
+│ ├── Pflichtenheft.md # Pflichtenheft (不可改动)
+│ ├── IMPLEMENTATION_REPORT.md # Implementierungsbericht
+│ ├── TEST_GUIDE.md # Testanleitungen
+│ ├── CHANGELOG.md # 更新历史
+│ └── database/
+│ └── schema.sql # Datenbankschema für Db2
 ├── lib/
-│   └── db2jcc4.jar                  # Db2 JDBC-Treiber (optional, wird via Maven geladen)
-├── pom.xml                          # Maven-Konfiguration
-├── mvnw / mvnw.cmd                  # Maven Wrapper
-├── .gitignore                       # Git-Ignore-Regeln
-└── README.md                        # Diese Datei
+│ └── db2jcc4.jar # Db2 JDBC-Treiber (optional, wird via Gradle geladen)
+├── build.gradle # Gradle-Konfiguration
+├── gradlew / gradlew.bat # Gradle Wrapper
+├── .gitignore # Git-Ignore-Regeln
+└── README.md # Diese Datei
 ```
 CarRental/
 ├── src/
@@ -358,7 +357,7 @@ CarRental/
 | **UI框架** | Swing | JDK内置 |
 | **数据库** | IBM Db2 | 11.5.x |
 | **JDBC驱动** | com.ibm.db2:jcc | 11.5.9.0 |
-| **构建工具** | Maven | 3.8+ (Wrapper) |
+| **构建工具** | Gradle | 8.5+ (Wrapper) |
 | **架构** | MVC | 自定义 |
 | **模式** | Singleton, Factory, DAO, Observer | - |
 
@@ -371,7 +370,7 @@ CarRental/
 - **Anzahl Java-Dateien**: 32
 - **Gesamtklassenanzahl**: 28 (10 Model, 7 DAO, 4 Controller, 8 View, 2 Util, 1 Main, 3 Enums)
 - **Dokumentationsdateien**: 6 Markdown-Dateien
-- **Konfigurationsdateien**: 3 (pom.xml, .gitignore, Konfigurationsvorlage)
+- **Konfigurationsdateien**: 3 (build.gradle, .gitignore, Konfigurationsvorlage)
 
 ### Funktionsstatistiken
 - **Gesamtfunktionen**: 25+
@@ -392,10 +391,10 @@ CarRental/
 **Lösung:**
 ```powershell
 # Stelle sicher, dass die Fat-JAR verwendet wird:
-java -jar target/car-rental-system-jar-with-dependencies.jar
+java -jar build/libs/car-rental-system-1.0-SNAPSHOT.jar
 
 # Oder explizit den Klassenpfad setzen:
-java -cp "target/car-rental-system-1.0-SNAPSHOT.jar;lib/db2jcc4.jar" com.carrental.Main
+java -cp "build/libs/car-rental-system-1.0-SNAPSHOT.jar;lib/db2jcc4.jar" com.carrental.Main
 ```
 
 ### Problem: "invalid target release: 17"
@@ -406,11 +405,11 @@ java -cp "target/car-rental-system-1.0-SNAPSHOT.jar;lib/db2jcc4.jar" com.carrent
 java -version
 
 # Setze JAVA_HOME auf JDK 17
-$env:JAVA_HOME = "C:\Program Files\Eclipse Adoptium\jdk-17.0.11"
-$env:Path = "$env:JAVA_HOME\bin;$env:Path"
+$env:JAVA_HOME = "C:\\Program Files\\Eclipse Adoptium\\jdk-17.0.11"
+$env:Path = "$env:JAVA_HOME\\bin;$env:Path"
 
 # Neuer Build
-.\mvnw.cmd clean package
+.\gradlew.bat build
 ```
 
 ### Problem: "Initiale Daten konnten nicht geladen werden"
@@ -423,7 +422,7 @@ $env:Path = "$env:JAVA_HOME\bin;$env:Path"
 ### Problem: "BUILD FAILURE - dependencies.dependency.systemPath"
 
 **Lösung:**
-Diese Warnung ist erwartbar. Maven wird die Db2-JAR automatisch vom IBM-Repository herunterladen. Der Build funktioniert trotzdem.
+Diese Warnung ist erwartbar. Gradle wird die Db2-JAR automatisch vom IBM-Repository herunterladen. Der Build funktioniert trotzdem.
 
 ---
 
@@ -495,11 +494,11 @@ Dieses Projekt dient zu Bildungszwecken.
 **F: Kann ich das Projekt auch ohne Db2 laufen lassen?**  
 A: Nein, die Architektur ist auf Db2 ausgelegt. Für andere Datenbanken müssten die DAOs angepasst werden.
 
-**F: Wie lange dauert der erste Build?**  
-A: Beim ersten Mal ~2-5 Minuten (Maven lädt ~100 MB Dependencies). Danach ~30 Sekunden.
+**F: Wie lange dauert der erste Build?**
+A: Beim ersten Mal ~2-5 Minuten (Gradle lädt ~100 MB Dependencies). Danach ~30 Sekunden.
 
-**F: Kann ich das Projekt in der IDE debuggen?**  
-A: Ja! Importiere das Projekt als Maven Project in IntelliJ IDEA oder Eclipse.
+**F: Kann ich das Projekt in der IDE debuggen?**
+A: Ja! Importiere das Projekt als Gradle Project in IntelliJ IDEA oder Eclipse.
 
 **F: Wie erstelle ich einen neuen Benutzer?**  
 A: Klicke auf "Registrieren" in der Login-GUI.

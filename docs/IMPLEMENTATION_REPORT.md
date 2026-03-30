@@ -6,7 +6,7 @@
 - **Projektname:** CarRental - Autovermietungssystem
 - **Typ:** Desktop-Anwendung (Java Swing)
 - **Datenbank:** IBM Db2
-- **Build-Tool:** Maven
+- **Build-Tool:** Gradle
 - **Java-Version:** 17
 - **Entwicklungsansatz:** Model-View-Controller (MVC)
 
@@ -258,10 +258,11 @@
    - @SuppressWarnings für Legacy-Code
 
 - ✅ **Build-Konfiguration**
-   - Maven Compiler Plugin (3.11.0)
-   - Maven Jar Plugin mit Main-Class Manifest
-   - Executable JAR-Support
-   - UTF-8 Encoding
+- Gradle Build System
+- Java Plugin mit Source/Target 17
+- Application Plugin für direkte Ausführung
+- Executable JAR-Support (Fat-JAR mit allen Dependencies)
+- UTF-8 Encoding
 
 - ✅ **Dokumentation**
    - ✅ README.md - Vollständige Projektdokumentation
@@ -417,11 +418,11 @@ CarRental/
 │   ├── CHANGELOG.md                   # ✅ 新增v1.1
 │   └── database/
 │       └── schema.sql            # DB Schema
-├── config/config.properties            # Template
+├── config/config.properties # Template
 ├── lib/
-│   └── db2jcc4.jar                    # (Manuell zu beschaffen)
-├── pom.xml                            # ✅ Maven Build
-└── README.md                          # ✅ Vollständig aktualisiert v1.1
+│ └── db2jcc4.jar # (Manuell zu beschaffen)
+├── build.gradle # ✅ Gradle Build
+└── README.md # ✅ Vollständig aktualisiert v1.1
 ```
 CarRental/
 ├── src/main/java/com/carrental/
@@ -466,12 +467,12 @@ CarRental/
 │   ├── Pflichtenheft.md               # Spezifikation
 │   ├── TEST_GUIDE.md                  # ✅ NEU: Test-Anleitung
 │   └── database/schema.sql            # DB Schema
-├── config/config.properties            # Template
+├── config/config.properties # Template
 ├── lib/
-│   ├── db2jcc4.jar                    # (Manuell zu beschaffen)
-│   └── README.md                      # Download-Anleitung
-├── pom.xml                            # ✅ Maven Build
-└── README.md                          # ✅ Vollständig aktualisiert
+│ ├── db2jcc4.jar # (Manuell zu beschaffen)
+│ └── README.md # Download-Anleitung
+├── build.gradle # ✅ Gradle Build
+└── README.md # ✅ Vollständig aktualisiert
 ```
 
 ## 🎯 Erfüllte Anforderungen
@@ -495,7 +496,7 @@ CarRental/
 - ✅ **NF4:** Deutsche Kommentare und JavaDoc
 - ✅ **NF5:** OOD.md Design befolgt
 - ✅ **NF6:** Db2 Datenbank unterstützt
-- ✅ **NF7:** Maven Build-System
+- ✅ **NF7:** Gradle Build-System
 - ✅ **NF8:** Swing GUI
 - ✅ **NF9:** Fehlerbehandlung implementiert
 - ✅ **NF10:** Offline-fähiger Build (mit lib/)
@@ -547,7 +548,7 @@ CarRental/
 
 ### Dateistatistiken (v1.1)
 - **Java-Quelldateien:** 32
-- **Konfigurationsdateien:** 2 (pom.xml, .gitignore)
+- **Konfigurationsdateien:** 2 (build.gradle, .gitignore)
 - **Dokumentationsdateien:** 7 (README.md, IMPLEMENTATION_REPORT.md, TEST_GUIDE.md, CHANGELOG.md, OOA.md, OOD.md, Pflichtenheft.md)
 - **Datenbankskripte:** 1 (schema.sql)
 - **Ressourcendateien:** mehrere
@@ -576,8 +577,9 @@ CarRental/
 1. Db2 JDBC Driver in `lib/` platzieren
 2. `config.properties` mit DB-Zugangsdaten konfigurieren
 3. Schema aus `docs/database/schema.sql` anwenden
-4. Maven build: `mvn clean package`
-5. Anwendung starten: `java -jar target/car-rental-system-1.0-SNAPSHOT.jar`
+4. Gradle build: `./gradlew build`
+
+5. Anwendung starten: `java -jar build/libs/car-rental-system-1.0-SNAPSHOT.jar`
 
 ### Für Testing
 1. Test-Guide befolgen: `docs/TEST_GUIDE.md`

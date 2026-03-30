@@ -3,7 +3,7 @@
 ## Technologie-Stack
 - Java 17, Swing GUI
 - IBM Db2 Datenbank
-- Maven Build-System
+- Gradle Build-System
 
 ## Architektur
 - Schichtenarchitektur: Model → DAO → Controller → View
