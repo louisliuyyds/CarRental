@@ -13,7 +13,7 @@ CarRental/
 ├── gradle/
 │   └── wrapper/
 │       ├── gradle-wrapper.jar        # Gradle wrapper executable
-│       └── gradle-wrapper.properties # Wrapper configuration (Gradle 8.5)
+│       └── gradle-wrapper.properties # Wrapper configuration (Gradle 8.14.3)
 ├── gradlew                   # Unix/Linux/Mac wrapper script
 ├── gradlew.bat               # Windows wrapper script
 └── src/
@@ -46,8 +46,8 @@ The `build.gradle` file defines:
   - IBM Db2 JDBC Driver (`com.ibm.db2:jcc:11.5.9.0`)
 
 - **Java Configuration**:
-  - Source Compatibility: Java 17
-  - Target Compatibility: Java 17
+  - Source Compatibility: Java 21
+  - Target Compatibility: Java 21
   - Encoding: UTF-8
 
 - **Application Configuration**:

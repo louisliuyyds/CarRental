@@ -1,7 +1,7 @@
 # 🚗 CarRental - Autovermietungssystem
 
 > **Version:** 1.1.0  
-> **Letzte Aktualisierung:** Januar 2026
+> **Letzte Aktualisierung:** März 2026
 
 Ein vollständiges **Java-basiertes Autovermietungssystem** mit grafischer Benutzeroberfläche (Swing), Datenbankanbindung (IBM Db2) und MVC-Architektur.
 
@@ -58,11 +58,11 @@ Ein vollständiges **Java-basiertes Autovermietungssystem** mit grafischer Benut
 ## 🖥️ Systemanforderungen
 
 ### Notwendig
-- **Java Development Kit (JDK) 17+**
-[Download Temurin JDK 17](https://adoptium.net/temurin/releases/?version=17)
+- **Java Development Kit (JDK) 21+**
+[Download Temurin JDK 21](https://adoptium.net/temurin/releases/?version=21)
 - **IBM Db2 Datenbank**
 (Cloud-Instanz oder lokal)
-- **Gradle 8.5+** (wird automatisch via Gradle Wrapper bereitgestellt)
+- **Gradle 8.14.3+** (wird automatisch via Gradle Wrapper bereitgestellt)
 
 ### Optional
 - Git (für Versionskontrolle)
@@ -114,25 +114,25 @@ java -jar build/libs/car-rental-system-1.0-SNAPSHOT.jar
 
 ## 📖 Detaillierte Installationsanleitung
 
-### Schritt 1: Java 17 installieren
+### Schritt 1: Java 21 installieren
 
 **Windows (PowerShell als Admin):**
 ```powershell
-winget install --id EclipseAdoptium.Temurin.17.JDK -e
+winget install --id EclipseAdoptium.Temurin.21.JDK -e
 # Terminal neu öffnen
 java -version
 ```
 
 **macOS:**
 ```bash
-brew install temurin@17
+brew install temurin@21
 java -version
 ```
 
 **Linux (Ubuntu/Debian):**
 ```bash
 sudo apt update
-sudo apt install temurin-17-jdk
+sudo apt install temurin-21-jdk
 java -version
 ```
 
